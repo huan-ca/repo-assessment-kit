@@ -96,6 +96,42 @@ case "$provider" in
   codex) image=rak-codex:0.1.0; home_volume="rak-${engagement_id}-codex-home-v1" ;;
   claude) image=rak-claude:0.1.0; home_volume="rak-${engagement_id}-claude-home-v1" ;;
 esac
+workspace_volume="rak-${engagement_id}-${timestamp}-workspace"
+reports_volume="rak-${engagement_id}-${timestamp}-reports"
+docker volume create "$workspace_volume" >/dev/null
+docker volume create "$reports_volume" >/dev/null
+reports_exported=no
+export_reports() {
+  if [[ "$reports_exported" == no ]]; then
+    mkdir -p "$output"
+    if docker run --rm --user 0:0 --volume "$reports_volume:/source:ro" \
+      --entrypoint tar "$image" -C /source -cf - . |
+      tar -C "$output" -xf -
+    then
+      reports_exported=yes
+      return 0
+    fi
+    printf 'Could not copy reports back to %s; Docker volume %s was retained.\n' \
+      "$output" "$reports_volume" >&2
+    return 1
+  fi
+}
+cleanup_assessment_volumes() {
+  if export_reports; then
+    docker volume rm "$workspace_volume" "$reports_volume" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup_assessment_volumes EXIT HUP INT TERM
+
+tar -C "$workspace" -cf - . |
+  docker run --rm -i --user 0:0 --volume "$workspace_volume:/destination" \
+    --entrypoint sh "$image" -c \
+    'tar -C /destination -xf - && chown -R 1000:1000 /destination'
+tar -C "$output" -cf - . |
+  docker run --rm -i --user 0:0 --volume "$reports_volume:/destination" \
+    --entrypoint sh "$image" -c \
+    'tar -C /destination -xf - && chown -R 1000:1000 /destination'
+
 if ! docker run --rm --network none --volume "$home_volume:/home/node" "$image" status >/dev/null 2>&1; then
   if [[ ! -t 0 || ! -t 1 ]]; then
     printf 'Provider login is required. Run this command from an interactive terminal.\n' >&2
@@ -111,8 +147,8 @@ docker_args=(
   --pids-limit 2048
   --memory 8g
   --cpus 4
-  --volume "$workspace:/workspace/target"
-  --volume "$output:/workspace/output"
+  --volume "$workspace_volume:/workspace/target"
+  --volume "$reports_volume:/workspace/output"
   --volume "$home_volume:/home/node"
 )
 if [[ -n "$ssh_dir" ]]; then
@@ -125,5 +161,8 @@ printf 'Assessment workspace: %s\n' "$workspace"
 printf 'Reports will be written to: %s\n' "$output"
 docker "${docker_args[@]}" --entrypoint node "$image" \
   /usr/local/lib/rak-practical-assessment.mjs "$provider"
+export_reports
+docker volume rm "$workspace_volume" "$reports_volume" >/dev/null 2>&1 || true
+trap - EXIT HUP INT TERM
 printf '\nOpen first: %s\n' "$output/executive-report.md"
 printf 'ZIP package: %s\n' "$output/repo-assessment.zip"

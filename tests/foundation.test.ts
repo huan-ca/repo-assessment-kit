@@ -127,6 +127,11 @@ describe("provider launcher policy", () => {
     expect(practicalLauncher).not.toMatch(/eval |sh -c/u);
     expect(practicalLauncherStat.mode & 0o111).not.toBe(0);
     expect(practicalLauncher).toContain("Assessment stopped at line");
+    expect(practicalLauncher).toContain('workspace_volume="rak-');
+    expect(practicalLauncher).toContain('reports_volume="rak-');
+    expect(practicalLauncher).toContain("export_reports");
+    expect(practicalLauncher).toContain('--volume "$workspace_volume:/workspace/target"');
+    expect(practicalLauncher).not.toContain('--volume "$workspace:/workspace/target"');
     expect(customerLauncher).toContain("https://*|ssh://*|git@*:*)");
     await expect(
       readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
