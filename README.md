@@ -22,9 +22,6 @@ repository.
 Start with Test 1. It works without Docker, provider credentials, SSH credentials, Playwright, or a
 running copy of the assessed application.
 
-`./start-code.sh` is provided as a compatibility alias for `./start-codex.sh`. Both invoke the same
-closed Codex launcher.
-
 ## Safety rules
 
 - Use a dedicated test host and non-production repositories.
