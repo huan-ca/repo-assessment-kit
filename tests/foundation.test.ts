@@ -106,12 +106,20 @@ describe("provider launcher policy", () => {
     expect(builder).toContain("sourceFingerprint");
     expect(builder).not.toContain('run("git"');
     const practical = await readFile(path.join(root, "scripts/practical-assessment.mjs"), "utf8");
+    const practicalLauncher = await readFile(
+      path.join(root, "scripts/practical-assessment.sh"),
+      "utf8",
+    );
     expect(practical).toContain("Product, customers, and feature-parity catalog");
     expect(practical).toContain("Security assessment");
     expect(practical).toContain("Dynamic verification and screenshots");
     expect(practical).toContain("Independent challenge review");
     expect(practical).toContain("Modernization decision");
     expect(practical).toContain("rak-validate-practical-assessment.mjs");
+    expect(practicalLauncher).toContain("--git");
+    expect(practicalLauncher).toContain("--ref");
+    expect(practicalLauncher).toContain('git "${clone_args[@]}"');
+    expect(practicalLauncher).not.toMatch(/eval |sh -c/u);
     await expect(
       readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
     ).rejects.toThrow();

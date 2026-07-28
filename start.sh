@@ -9,6 +9,7 @@ usage() {
   printf '%s\n' \
     "usage: ./start.sh [--provider codex|claude] [preflight|build-images|login|status|interactive]" \
     "       ./start.sh --provider codex|claude assess --repo /path/to/client-repository [--mount-ssh /path/to/.ssh]" \
+    "       ./start.sh --provider codex|claude assess --git GIT_URL [--ref BRANCH_OR_TAG]" \
     "       ./start.sh --provider codex|claude run --config <path>" \
     "       ./start.sh --provider codex|claude resume --run-dir <path>" \
     "" \
@@ -178,7 +179,16 @@ NODE
         [[ -z "$assess_answer" || "$assess_answer" == y || "$assess_answer" == Y ||
           "$assess_answer" == yes || "$assess_answer" == YES ]]
       then
-        read -r -p "Path to the client repository: " client_repo
+        read -r -p "Client repository path or Git URL: " client_repo
+        if [[ "$client_repo" == *"://"* || "$client_repo" == git@*:* ]]; then
+          read -r -p "Branch or tag (Enter for the repository default): " client_ref
+          if [[ -n "$client_ref" ]]; then
+            exec "$repo_root/scripts/practical-assessment.sh" \
+              --provider "$provider_name" --git "$client_repo" --ref "$client_ref"
+          fi
+          exec "$repo_root/scripts/practical-assessment.sh" \
+            --provider "$provider_name" --git "$client_repo"
+        fi
         exec "$repo_root/scripts/practical-assessment.sh" \
           --provider "$provider_name" --repo "$client_repo"
       fi

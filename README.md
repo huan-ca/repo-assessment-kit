@@ -132,6 +132,16 @@ check. You can also start it directly:
 
 Replace `claude` with `codex` if that is the selected provider.
 
+To clone a remote repository into the disposable workspace:
+
+```sh
+./start.sh --provider claude assess --git git@github.com:owner/repository.git
+```
+
+HTTPS URLs are also supported. Add `--ref branch-or-tag` to select something other than the
+repository’s default branch. SSH cloning uses the host’s normal Git/SSH configuration; the
+assessment container receives the cloned repository, not the host’s SSH keys.
+
 The kit copies the repository into a dated directory under `generated/`; the client repository is
 not modified. The agent then performs separate product, architecture, security, quality, dynamic,
 adversarial-review, decision, and executive passes. It may install dependencies and execute the

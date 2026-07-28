@@ -5,11 +5,14 @@ readonly EX_USAGE=64
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 provider=
 source_repo=
+git_url=
+git_ref=
 ssh_dir=
 
 usage() {
   printf '%s\n' \
-    "usage: ./start.sh --provider codex|claude assess --repo /path/to/client-repository [--mount-ssh /path/to/.ssh]" >&2
+    "usage: ./start.sh --provider codex|claude assess --repo /path/to/client-repository [--mount-ssh /path/to/.ssh]" \
+    "       ./start.sh --provider codex|claude assess --git GIT_URL [--ref BRANCH_OR_TAG] [--mount-ssh /path/to/.ssh]" >&2
   exit "$EX_USAGE"
 }
 
@@ -17,14 +20,32 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --provider) [[ $# -ge 2 ]] || usage; provider=$2; shift 2 ;;
     --repo) [[ $# -ge 2 ]] || usage; source_repo=$2; shift 2 ;;
+    --git) [[ $# -ge 2 ]] || usage; git_url=$2; shift 2 ;;
+    --ref) [[ $# -ge 2 ]] || usage; git_ref=$2; shift 2 ;;
     --mount-ssh) [[ $# -ge 2 ]] || usage; ssh_dir=$2; shift 2 ;;
     *) usage ;;
   esac
 done
 [[ "$provider" == codex || "$provider" == claude ]] || usage
-[[ -n "$source_repo" ]] || usage
-source_repo=$(cd -- "$source_repo" && pwd -P)
-[[ -d "$source_repo" ]] || usage
+if [[ -n "$source_repo" && -n "$git_url" ]] || [[ -z "$source_repo" && -z "$git_url" ]]; then
+  usage
+fi
+if [[ -n "$source_repo" ]]; then
+  source_repo=$(cd -- "$source_repo" && pwd -P)
+  [[ -d "$source_repo" ]] || usage
+fi
+if [[ -n "$git_ref" && ! "$git_ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$ ]]; then
+  printf 'Git branch or tag contains unsupported characters.\n' >&2
+  exit "$EX_USAGE"
+fi
+if [[ -n "$git_url" &&
+  ! "$git_url" =~ ^https://[^[:space:]]+$ &&
+  ! "$git_url" =~ ^ssh://[^[:space:]]+$ &&
+  ! "$git_url" =~ ^git@[^[:space:]:]+:[^[:space:]]+$ ]]
+then
+  printf 'Git URL must use HTTPS or SSH.\n' >&2
+  exit "$EX_USAGE"
+fi
 
 node "$repo_root/scripts/ensure-local-images.mjs"
 engagement_id=$(node "$repo_root/scripts/engagement-id.mjs" --file "$repo_root/.rak_id")
@@ -34,7 +55,17 @@ workspace="$run_dir/workspace"
 output="$run_dir/reports"
 mkdir -p "$workspace" "$output"
 chmod 0700 "$run_dir" "$workspace" "$output"
-cp -R "$source_repo/." "$workspace/"
+if [[ -n "$source_repo" ]]; then
+  cp -R "$source_repo/." "$workspace/"
+else
+  clone_args=(clone --no-tags)
+  if [[ -n "$git_ref" ]]; then
+    clone_args+=(--branch "$git_ref" --single-branch)
+  fi
+  clone_args+=(-- "$git_url" "$workspace")
+  printf 'Cloning client repository into the disposable workspace...\n'
+  GIT_SSH_COMMAND='ssh -o IgnoreUnknown=UseKeychain' git "${clone_args[@]}"
+fi
 
 target_customer="Not supplied"
 critical_workflows="Not supplied"
