@@ -8,6 +8,7 @@ cd "$repo_root"
 usage() {
   printf '%s\n' \
     "usage: ./start.sh [--provider codex|claude] [preflight|build-images|login|status|interactive]" \
+    "       ./start.sh --provider codex|claude assess --repo /path/to/client-repository [--mount-ssh /path/to/.ssh]" \
     "       ./start.sh --provider codex|claude run --config <path>" \
     "       ./start.sh --provider codex|claude resume --run-dir <path>" \
     "" \
@@ -62,6 +63,9 @@ esac
 command=${1:-preflight}
 if [[ $# -gt 0 ]]; then shift; fi
 case "$command" in
+  assess)
+    exec "$repo_root/scripts/practical-assessment.sh" --provider "$provider_name" "$@"
+    ;;
   build-images)
     [[ $# -eq 0 ]] || usage
     node "$repo_root/scripts/ensure-local-images.mjs"
@@ -168,6 +172,17 @@ NODE
     mv -f -- "$report" "$final_report"
     trap - EXIT HUP INT TERM
     printf '\nDetailed report: %s\n' "$final_report"
+    if [[ "$result" -eq 0 && -t 0 ]]; then
+      printf '\nThe kit is ready to assess a repository.\n'
+      if read -r -p "Start the assessment now? [Y/n]: " assess_answer &&
+        [[ -z "$assess_answer" || "$assess_answer" == y || "$assess_answer" == Y ||
+          "$assess_answer" == yes || "$assess_answer" == YES ]]
+      then
+        read -r -p "Path to the client repository: " client_repo
+        exec "$repo_root/scripts/practical-assessment.sh" \
+          --provider "$provider_name" --repo "$client_repo"
+      fi
+    fi
     exit "$result"
     ;;
   login|status|interactive)

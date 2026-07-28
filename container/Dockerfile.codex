@@ -7,17 +7,23 @@ LABEL org.opencontainers.image.title="Repo Assessment Kit Codex provider compart
       io.repo-assessment-kit.provider-cli-version="${CODEX_VERSION}"
 ENV COREPACK_HOME=/opt/corepack \
     CODEX_HOME=/home/node/.codex \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/rak-browsers \
     DISABLE_AUTOUPDATER=1 \
     NODE_ENV=production
 
 RUN apt-get update \
- && apt-get install --yes --no-install-recommends ca-certificates tini \
+ && apt-get install --yes --no-install-recommends ca-certificates tini git curl jq ripgrep zip \
+      python3 python3-pip build-essential \
  && rm -rf /var/lib/apt/lists/* \
- && npm install --global "@openai/codex@${CODEX_VERSION}" \
+ && npm install --global "@openai/codex@${CODEX_VERSION}" "@playwright/test@1.54.1" \
+ && playwright install --with-deps chromium \
+ && chmod -R a+rX /opt/rak-browsers \
  && codex --version
 
 COPY --chmod=0555 container/provider-entrypoint.sh /usr/local/bin/rak-provider-entrypoint
 COPY --chmod=0444 container/provider-task.mjs /usr/local/lib/rak-provider-task.mjs
+COPY --chmod=0555 scripts/practical-assessment.mjs /usr/local/lib/rak-practical-assessment.mjs
+COPY --chmod=0555 scripts/validate-practical-assessment.mjs /usr/local/lib/rak-validate-practical-assessment.mjs
 RUN mkdir -p /home/node/.codex && chown -R node:node /home/node
 
 USER node

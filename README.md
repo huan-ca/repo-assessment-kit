@@ -31,7 +31,6 @@ Your technical contact should provide:
 - this assessment-kit folder;
 - access to the repository being assessed;
 - a Codex or Claude Code account;
-- an assessment configuration file; and
 - disposable test credentials only if browser testing requires them.
 
 Use a non-production computer or approved assessment machine. Never provide production passwords,
@@ -74,13 +73,11 @@ or:
 
 The kit chooses the first safe mode available:
 
-| Recommendation                                 | What it means                                                       |
-| ---------------------------------------------- | ------------------------------------------------------------------- |
-| Full isolated assessment with browser evidence | Runtime checks, screenshots, and browser-flow checks are available  |
-| Isolated assessment without browser evidence   | Runtime checks are available, but screenshots are omitted           |
-| Static assessment with browser evidence        | Code analysis and approved browser checks are available             |
-| Static assessment without browser evidence     | Code and security analysis continue without running the application |
-| Not ready to assess                            | A required safety or release component must be provided before use  |
+| Recommendation                                      | What it means                                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Full repository assessment with browser evidence    | The agent can inspect and run a disposable copy, test it, and take screenshots |
+| Full repository assessment without browser evidence | The same assessment runs, but screenshots and browser flows are omitted        |
+| Not ready to assess                                 | Docker or a required local container is unavailable                            |
 
 Playwright and Chromium are already included in the browser Docker image. You should not install
 Playwright yourself. If the safe browser environment is unavailable, the kit can recommend a static
@@ -100,10 +97,8 @@ The most common causes are an unavailable Docker environment, containers that ha
 building, or a missing assessment helper. The guided start command handles the local container
 build.
 
-On macOS, if Docker is installed but does not meet the rootless safety check, `./start.sh` offers a
-guided repair. It explains each change and asks before installing Lima, creating the separate
-rootless Docker virtual machine, or adding a Docker connection. After Docker is verified, the
-readiness check runs again and moves to the next required item.
+Standard Docker Desktop is supported. The assessment container does not receive the host Docker
+socket, host home directory, or SSH credentials unless an SSH directory is explicitly supplied.
 
 ## Sign in to the selected provider
 
@@ -128,21 +123,25 @@ Follow the provider’s normal sign-in instructions. Do not place provider passw
 
 ## Run the assessment
 
-Your technical contact should prepare and review the assessment configuration. To start:
+Running `./start.sh` with no other arguments offers to start the assessment after the readiness
+check. You can also start it directly:
 
 ```sh
-./start.sh --provider claude run --config /path/to/assessment.json
+./start.sh --provider claude assess --repo /path/to/client-repository
 ```
 
 Replace `claude` with `codex` if that is the selected provider.
 
-If the tool gives you a specific resume command, use the exact run directory it reports:
+The kit copies the repository into a dated directory under `generated/`; the client repository is
+not modified. The agent then performs separate product, architecture, security, quality, dynamic,
+adversarial-review, decision, and executive passes. It may install dependencies and execute the
+copied application inside the assessment container. This uses eight fresh agent sessions and can
+take substantial time on a large repository; that separation is intentional so one shallow context
+does not control the entire recommendation.
 
-```sh
-./start.sh --provider claude resume --run-dir generated/<exact-run-directory>
-```
-
-Do not edit files inside an interrupted run.
+Before the run, the kit asks four optional business questions: target customer, must-preserve
+workflows, competitive differences, and sandbox/startup notes. “Not supplied” is valid, and the
+reports must distinguish owner statements from code-verified facts.
 
 ## Where results are stored
 
@@ -162,8 +161,8 @@ review:
 5. coverage gaps and limitations; and
 6. the evidence supporting each important conclusion.
 
-A package marked `DRAFT_VALIDATED_RELEASE_BLOCKED` is an internal draft. It may be reviewed, but it
-is not an authorized final customer release.
+The final archive is named `repo-assessment.zip`. Start with `executive-report.md`, then read
+`modernization-decision.md` and the detailed pass reports.
 
 ## Information and credential safety
 

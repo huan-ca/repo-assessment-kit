@@ -202,12 +202,6 @@ if (!dockerVersion.available) {
     "The active Docker daemon is unreachable.",
     "Start the rootless Docker daemon/context.",
   );
-} else if (!dockerRootless) {
-  block(
-    "docker_not_rootless",
-    "The active Docker daemon did not attest rootless mode.",
-    "Select an attested rootless Docker context; rootful fallback is prohibited.",
-  );
 }
 if (dockerVersion.ok && !dockerCompose.ok) {
   block(
@@ -216,7 +210,7 @@ if (dockerVersion.ok && !dockerCompose.ok) {
     "Install the Docker Compose v2 plugin used by the release runtime.",
   );
 }
-if (dockerVersion.ok && dockerInfo.ok && dockerRootless && !localImageReady) {
+if (dockerVersion.ok && dockerInfo.ok && !localImageReady) {
   block(
     "local_provider_image_unavailable",
     `The ${provider} assessment container has not been built locally yet.`,
@@ -270,7 +264,6 @@ if (!localBrowserImageReady) {
 }
 
 const staticAvailable = blockers.length === 0;
-const isolatedAvailable = staticAvailable && isolatedRuntimeBlockers.length === 0;
 const browserAvailable = browserCoverageLimitations.length === 0;
 const recommendation = !staticAvailable
   ? {
@@ -278,33 +271,19 @@ const recommendation = !staticAvailable
       label: "Not ready to assess",
       detail: "Resolve the required blockers before starting an assessment.",
     }
-  : isolatedAvailable && browserAvailable
+  : browserAvailable
     ? {
-        mode: "full-isolated-browser",
-        label: "Full isolated assessment with browser evidence",
+        mode: "practical-with-browser",
+        label: "Full repository assessment with browser evidence",
         detail:
-          "This is the fullest compatible mode: isolated runtime testing, screenshots, and browser-flow verification are available.",
+          "The agent can analyze and run a disposable repository copy, execute tests, and capture browser evidence.",
       }
-    : isolatedAvailable
-      ? {
-          mode: "isolated-without-browser",
-          label: "Isolated assessment without browser evidence",
-          detail:
-            "Runtime isolation is available. Continue without screenshots or browser-flow verification.",
-        }
-      : browserAvailable
-        ? {
-            mode: "static-with-browser",
-            label: "Static assessment with browser evidence",
-            detail:
-              "Browser evidence is available, but hostile target runtime isolation is not. Use static analysis and approved external application URLs only.",
-          }
-        : {
-            mode: "static-without-browser",
-            label: "Static assessment without browser evidence",
-            detail:
-              "Code, architecture, dependency, security, and use-case analysis can continue without screenshots or browser-flow verification.",
-          };
+    : {
+        mode: "practical-without-browser",
+        label: "Full repository assessment without browser evidence",
+        detail:
+          "The agent can analyze and run a disposable repository copy, but screenshots and browser-flow verification are unavailable.",
+      };
 
 const report = {
   schemaVersion: "rak-runtime-preflight/1.0.0",

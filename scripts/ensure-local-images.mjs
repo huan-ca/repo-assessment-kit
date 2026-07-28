@@ -37,7 +37,12 @@ function run(command, args, options = {}) {
 }
 
 function sourceFingerprint() {
-  const files = ["package.json", "pnpm-lock.yaml"];
+  const files = [
+    "package.json",
+    "pnpm-lock.yaml",
+    "scripts/practical-assessment.mjs",
+    "scripts/validate-practical-assessment.mjs",
+  ];
   const visit = (relativeDirectory) => {
     for (const entry of readdirSync(path.join(root, relativeDirectory)).sort()) {
       const relativePath = path.join(relativeDirectory, entry);
@@ -84,11 +89,6 @@ function inspectImages() {
 
 try {
   run("docker", ["info"], { capture: true });
-  const securityOptions = run("docker", ["info", "--format", "{{json .SecurityOptions}}"], {
-    capture: true,
-  });
-  if (!securityOptions.includes("name=rootless"))
-    throw new Error("select a rootless Docker context before building the containers");
   const fingerprint = sourceFingerprint();
   let current;
   try {

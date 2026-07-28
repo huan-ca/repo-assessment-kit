@@ -89,8 +89,8 @@ describe("provider launcher policy", () => {
     expect(dockerfile).toContain("USER node");
     expect(probe).toContain('process.argv[2] !== "probe"');
     expect(probe).not.toMatch(/goto\(|process\.env|http:/u);
-    expect(preflight).toContain('"static-without-browser"');
-    expect(preflight).toContain('"full-isolated-browser"');
+    expect(preflight).toContain('"practical-without-browser"');
+    expect(preflight).toContain('"practical-with-browser"');
     expect(preflight).toContain("browserCoverageLimitations");
     expect(preflight).not.toContain('block(\n    "playwright_');
   });
@@ -99,13 +99,19 @@ describe("provider launcher policy", () => {
     const builder = await readFile(path.join(root, "scripts/ensure-local-images.mjs"), "utf8");
     expect(builder).toContain("generated");
     expect(builder).toContain("local-images.json");
-    expect(builder).toContain('"name=rootless"');
     expect(builder).toContain('"rak-codex:0.1.0"');
     expect(builder).toContain('"rak-claude:0.1.0"');
     expect(builder).toContain('"rak-acquisition:0.1.0"');
     expect(builder).toContain('"rak-browser:0.1.0"');
     expect(builder).toContain("sourceFingerprint");
     expect(builder).not.toContain('run("git"');
+    const practical = await readFile(path.join(root, "scripts/practical-assessment.mjs"), "utf8");
+    expect(practical).toContain("Product, customers, and feature-parity catalog");
+    expect(practical).toContain("Security assessment");
+    expect(practical).toContain("Dynamic verification and screenshots");
+    expect(practical).toContain("Independent challenge review");
+    expect(practical).toContain("Modernization decision");
+    expect(practical).toContain("rak-validate-practical-assessment.mjs");
     await expect(
       readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
     ).rejects.toThrow();
