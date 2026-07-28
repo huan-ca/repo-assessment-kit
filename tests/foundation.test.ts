@@ -40,7 +40,13 @@ describe("provider launcher policy", () => {
     expect(result.stderr).toContain("trailing provider arguments are not accepted");
   });
 
-  it.each(["interactive", "run", "resume"])("refuses unbrokered %s", (verb) => {
+  it("admits interactive only through a verified release", () => {
+    const result = run("start-codex.sh", ["interactive"]);
+    expect(result.status).toBe(77);
+    expect(result.stderr).toContain("complete signed release bundle");
+  });
+
+  it.each(["run", "resume"])("refuses unbrokered %s", (verb) => {
     const result = run("start-codex.sh", [verb]);
     expect(result.status).toBe(78);
     expect(result.stderr).toContain("requires the P5 task broker");

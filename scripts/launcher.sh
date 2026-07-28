@@ -106,6 +106,23 @@ if [[ "$verb" == pair || "$verb" == review || "$verb" == authorize || "$verb" ==
   exec node "$transition" "${transition_arguments[@]}"
 fi
 
+readonly engagement_id_helper="$repo_root/scripts/engagement-id.mjs"
+if [[ ! -f "$engagement_id_helper" || -L "$engagement_id_helper" ]]; then
+  blocked engagement_identity_unavailable \
+    "Install the complete release bundle containing scripts/engagement-id.mjs." \
+    "the engagement identity helper is absent or symbolic"
+  exit "$EX_CONFIG"
+fi
+if ! engagement_id=$(node "$engagement_id_helper" --file "$repo_root/.rak_id" 2>/dev/null); then
+  blocked invalid_engagement_id \
+    "Let the launcher create .rak_id, fix an unsafe .rak_id, or set RAK_ENGAGEMENT_ID to a lowercase slug of 1-48 characters." \
+    "a safe engagement identity could not be loaded or created"
+  exit "$EX_CONFIG"
+fi
+export RAK_ENGAGEMENT_ID="$engagement_id"
+readonly engagement_id
+readonly home_volume="rak-${engagement_id}-${home_suffix}-home-v1"
+
 if [[ "$verb" == preflight ]]; then
   exec node "$repo_root/scripts/runtime-preflight.mjs" --provider "$provider"
 fi
@@ -159,15 +176,6 @@ if [[ "$verb" == run || "$verb" == resume ]]; then
   fi
   exec node "$orchestrator" resume --provider "$provider" --run-dir "$argument"
 fi
-
-engagement_id=${RAK_ENGAGEMENT_ID:-}
-if [[ ! "$engagement_id" =~ ^[a-z0-9][a-z0-9-]{0,47}$ ]]; then
-  blocked invalid_engagement_id \
-    "Set RAK_ENGAGEMENT_ID to a unique lowercase slug (1-48 characters) for this engagement." \
-    "provider homes must never be shared across engagements; private execution requires the P5 task broker"
-  exit "$EX_CONFIG"
-fi
-readonly home_volume="rak-${engagement_id}-${home_suffix}-home-v1"
 
 readonly release_verifier="$repo_root/scripts/verify-release-assets.mjs"
 readonly release_manifest="$repo_root/release/release-manifest.json"

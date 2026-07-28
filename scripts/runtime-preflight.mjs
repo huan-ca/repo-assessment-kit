@@ -238,8 +238,8 @@ const interactiveBlock = (code, detail, remediation) =>
 if (!engagementValid) {
   interactiveBlock(
     "invalid_engagement_id",
-    "RAK_ENGAGEMENT_ID is absent or invalid.",
-    "Set a unique lowercase engagement slug of 1-48 characters.",
+    "The engagement identity is absent or invalid.",
+    "Run preflight through start-codex.sh or start-cc.sh so a private .rak_id is loaded or created.",
   );
 }
 if (!dockerVersion.available) {

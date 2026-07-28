@@ -249,23 +249,25 @@ See [the operator runbook](docs/operator-runbook.md) for installation and author
 not replace a missing signed component with a local digest, mutable image tag, direct Docker Compose
 run, broad SSH mount, or provider command.
 
-### Step 1 — Set a unique engagement ID
+### Step 1 — Let the launcher identify this engagement
 
-The launchers do not automatically read `.env`.
+You do not need to edit `.env`. The first `preflight`, `login`, `status`, `interactive`, `run`, or
+`resume` command creates a random `.rak_id` file in this checkout. Later commands reuse the same ID,
+so Codex and Claude Code keep using the correct, separate credential storage for this engagement.
+
+The file is not a password, but it is private to this checkout. It is ignored by Git, excluded from
+container images, and created so only your operating-system account can read it. Do not copy
+`.rak_id` into a different customer engagement.
+
+To see the ID after the first command:
 
 ```sh
-cp .env.example .env
+cat .rak_id
 ```
 
-Edit `.env`, then load it into the current shell:
-
-```sh
-set -a
-. ./.env
-set +a
-```
-
-Use a different `RAK_ENGAGEMENT_ID` for every engagement.
+Managed deployments may export `RAK_ENGAGEMENT_ID=customer-project` as an explicit override. The
+override must contain only lowercase letters, numbers, and hyphens (48 characters at most). It does
+not change the `.rak_id` file.
 
 ### Step 2 — Run read-only preflight
 

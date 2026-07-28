@@ -5,6 +5,7 @@ state/
 .env
 .env.*
 !.env.example
+.rak_id
 node_modules/
 dist/
 dist-types/

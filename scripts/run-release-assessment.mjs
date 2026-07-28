@@ -649,7 +649,7 @@ export function createProductionBrokerAdapter({
         adapter.reason = typedLimitation(
           "PROVIDER_ENGAGEMENT_AUTHORITY_INVALID",
           "Production provider engagement identity is absent or invalid.",
-          "Set the nonsecret RAK_ENGAGEMENT_ID selected during provider login.",
+          "Use start-codex.sh or start-cc.sh so the checkout's private .rak_id is loaded.",
           "PROVIDER_TASKS",
         );
         return { available: false, reason: adapter.reason };

@@ -39,22 +39,26 @@ emergency cleanup controls. Docker Desktop alone is not evidence that those cont
 substitute privileged Docker-in-Docker, direct Compose, a host Docker-socket mount, broad host
 mounts, or direct provider execution.
 
-Create a unique engagement identifier using the deployment’s approved setup procedure. Provider
-login state is persistent and separate for each engagement and provider. The public launcher has no
-provider-home deletion verb; follow the organization’s approved storage cleanup procedure at
-engagement close and record it. Never delete a home while a run or review is active.
+On the first valid launcher command, the kit creates a random `.rak_id` in the checkout and reuses
+it. No `.env` entry is required. The file is a non-secret identifier, must remain owned and readable
+only by the engagement account, and must not be copied to another engagement. A managed deployment
+may export a valid `RAK_ENGAGEMENT_ID` override without changing the file. Provider login state is
+persistent and separate for each engagement and provider. The public launcher has no provider-home
+deletion verb; follow the organization’s approved storage cleanup procedure at engagement close and
+record it. Never delete a home while a run or review is active.
 
 Keep all kit output under `generated/`. The repository’s `.gitignore` excludes `generated/`,
-`state/`, `workspaces/`, `.env*` except `.env.example`, and common build/test output. Before and
-after a run:
+`state/`, `workspaces/`, `.rak_id`, `.env*` except `.env.example`, and common build/test output.
+Before and after a run:
 
 ```sh
 git check-ignore generated/probe
+git check-ignore .rak_id
 git status --short
 ```
 
-The first command must identify a `generated/` ignore rule. Review `git status` rather than assuming
-ignored output cannot be staged by an unsafe command.
+The first two commands must identify their matching ignore rules. Review `git status` rather than
+assuming ignored output cannot be staged by an unsafe command.
 
 ### 1.1 Production helper installation and service boundary
 
@@ -131,7 +135,7 @@ identity, paths, arguments, umask, and `RunAtLoad=false`, but launchd does not p
 parity for every Linux systemd sandbox directive. Treat macOS sandbox/hardening parity as an
 unverified native-platform gate, not as a deterministic installer pass.
 
-Final full CI passes 174/174 Vitest checks, 126/126 release seams, fixtures, shell syntax, build,
+Final full CI passes 174/174 Vitest checks, 129/129 release seams, fixtures, shell syntax, build,
 foundation smoke, security smoke, and a production audit with no known vulnerabilities. The CI
 environment has no native C compiler, so it did not compile or execute the four platform-specific
 `rak-peer-cred` payloads. A release operator must retain the NO-GO until real Linux ARM64/x86-64 and
