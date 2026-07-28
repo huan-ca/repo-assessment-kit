@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'status=$?; printf "Assessment stopped at line %s while running: %s\\n" "$LINENO" "$BASH_COMMAND" >&2; exit "$status"' ERR
 
 readonly EX_USAGE=64
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)

@@ -111,6 +111,7 @@ describe("provider launcher policy", () => {
       path.join(root, "scripts/practical-assessment.sh"),
       "utf8",
     );
+    const customerLauncher = await readFile(path.join(root, "start.sh"), "utf8");
     const practicalLauncherStat = await stat(path.join(root, "scripts/practical-assessment.sh"));
     expect(practical).toContain("Product, customers, and feature-parity catalog");
     expect(practical).toContain("Security assessment");
@@ -123,6 +124,8 @@ describe("provider launcher policy", () => {
     expect(practicalLauncher).toContain('git "${clone_args[@]}"');
     expect(practicalLauncher).not.toMatch(/eval |sh -c/u);
     expect(practicalLauncherStat.mode & 0o111).not.toBe(0);
+    expect(practicalLauncher).toContain("Assessment stopped at line");
+    expect(customerLauncher).toContain("https://*|ssh://*|git@*:*)");
     await expect(
       readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
     ).rejects.toThrow();

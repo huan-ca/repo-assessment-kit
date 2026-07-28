@@ -180,15 +180,17 @@ NODE
           "$assess_answer" == yes || "$assess_answer" == YES ]]
       then
         read -r -p "Client repository path or Git URL: " client_repo
-        if [[ "$client_repo" == *"://"* || "$client_repo" == git@*:* ]]; then
-          read -r -p "Branch or tag (Enter for the repository default): " client_ref
-          if [[ -n "$client_ref" ]]; then
+        case "$client_repo" in
+          https://*|ssh://*|git@*:*)
+            read -r -p "Branch or tag (Enter for the repository default): " client_ref
+            if [[ -n "$client_ref" ]]; then
+              exec "$repo_root/scripts/practical-assessment.sh" \
+                --provider "$provider_name" --git "$client_repo" --ref "$client_ref"
+            fi
             exec "$repo_root/scripts/practical-assessment.sh" \
-              --provider "$provider_name" --git "$client_repo" --ref "$client_ref"
-          fi
-          exec "$repo_root/scripts/practical-assessment.sh" \
-            --provider "$provider_name" --git "$client_repo"
-        fi
+              --provider "$provider_name" --git "$client_repo"
+            ;;
+        esac
         exec "$repo_root/scripts/practical-assessment.sh" \
           --provider "$provider_name" --repo "$client_repo"
       fi
