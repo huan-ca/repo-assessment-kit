@@ -5,6 +5,7 @@ import {
   mkdtemp,
   readFile,
   readdir,
+  stat,
   symlink,
   unlink,
   writeFile,
@@ -110,6 +111,7 @@ describe("provider launcher policy", () => {
       path.join(root, "scripts/practical-assessment.sh"),
       "utf8",
     );
+    const practicalLauncherStat = await stat(path.join(root, "scripts/practical-assessment.sh"));
     expect(practical).toContain("Product, customers, and feature-parity catalog");
     expect(practical).toContain("Security assessment");
     expect(practical).toContain("Dynamic verification and screenshots");
@@ -120,6 +122,7 @@ describe("provider launcher policy", () => {
     expect(practicalLauncher).toContain("--ref");
     expect(practicalLauncher).toContain('git "${clone_args[@]}"');
     expect(practicalLauncher).not.toMatch(/eval |sh -c/u);
+    expect(practicalLauncherStat.mode & 0o111).not.toBe(0);
     await expect(
       readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
     ).rejects.toThrow();
