@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -74,37 +74,50 @@ attempts, and limitations. Do not use production credentials or attack external 
   },
 ];
 
-function runAgent(prompt, destination) {
-  const result =
+async function runAgent(prompt, destination, label) {
+  const startedAt = Date.now();
+  const argv =
     provider === "codex"
-      ? spawnSync(
-          "codex",
-          [
-            "exec",
-            "--dangerously-bypass-approvals-and-sandbox",
-            "--ignore-user-config",
-            "--ignore-rules",
-            "--skip-git-repo-check",
-            "-C",
-            target,
-            "-o",
-            destination,
-            prompt,
-          ],
-          { cwd: target, encoding: "utf8", stdio: ["ignore", "inherit", "inherit"] },
-        )
-      : spawnSync(
-          "claude",
-          ["-p", "--dangerously-skip-permissions", "--output-format", "text", prompt],
-          {
-            cwd: target,
-            encoding: "utf8",
-            stdio: ["ignore", "pipe", "inherit"],
-          },
-        );
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`${provider} exited with status ${result.status}`);
-  if (provider === "claude") writeFileSync(destination, result.stdout, { mode: 0o600 });
+      ? [
+          "exec",
+          "--dangerously-bypass-approvals-and-sandbox",
+          "--ignore-user-config",
+          "--ignore-rules",
+          "--skip-git-repo-check",
+          "-C",
+          target,
+          "-o",
+          destination,
+          prompt,
+        ]
+      : ["-p", "--dangerously-skip-permissions", "--output-format", "text", prompt];
+  const child = spawn(provider, argv, {
+    cwd: target,
+    stdio: provider === "codex" ? ["ignore", "inherit", "inherit"] : ["ignore", "pipe", "inherit"],
+  });
+  const outputChunks = [];
+  if (provider === "claude") child.stdout.on("data", (chunk) => outputChunks.push(chunk));
+  const heartbeat = setInterval(() => {
+    const seconds = Math.floor((Date.now() - startedAt) / 1000);
+    process.stdout.write(
+      `[${new Date().toISOString()}] Still working on ${label} (${Math.floor(seconds / 60)}m ${seconds % 60}s elapsed)…\n`,
+    );
+  }, 20_000);
+  heartbeat.unref();
+  try {
+    const status = await new Promise((resolve, reject) => {
+      child.once("error", reject);
+      child.once("exit", (code, signal) => {
+        if (signal) reject(new Error(`${provider} stopped by signal ${signal}`));
+        else resolve(code);
+      });
+    });
+    if (status !== 0) throw new Error(`${provider} exited with status ${status}`);
+    if (provider === "claude")
+      writeFileSync(destination, Buffer.concat(outputChunks), { mode: 0o600 });
+  } finally {
+    clearInterval(heartbeat);
+  }
 }
 
 const failures = [];
@@ -112,9 +125,10 @@ for (const [index, task] of tasks.entries()) {
   const destination = path.join(passes, task.file);
   process.stdout.write(`\n[${index + 1}/${tasks.length + 3}] ${task.title}\n`);
   try {
-    runAgent(
+    await runAgent(
       `${shared}\n\nYour assigned pass is: ${task.title}.\n${task.instructions}\n\nReturn a detailed Markdown report with an executive summary, evidence, findings, unknowns, and recommended next actions.`,
       destination,
+      task.title,
     );
   } catch (error) {
     failures.push({
@@ -130,7 +144,7 @@ for (const [index, task] of tasks.entries()) {
 }
 
 process.stdout.write(`\n[${tasks.length + 1}/${tasks.length + 3}] Independent challenge review\n`);
-runAgent(
+await runAgent(
   `${shared}
 
 Act as an adversarial senior reviewer. Read all existing reports in ${passes}. Recheck a meaningful
@@ -140,10 +154,11 @@ contradictions, and conclusions that do not follow from evidence. Clearly distin
 problems from objections and unresolved questions. Return detailed Markdown that the decision
 synthesizer must address.`,
   path.join(passes, "06-independent-review.md"),
+  "independent challenge review",
 );
 
 process.stdout.write(`\n[${tasks.length + 2}/${tasks.length + 3}] Modernization decision\n`);
-runAgent(
+await runAgent(
   `${shared}
 
 Read every Markdown report in ${passes}. Produce a decision-grade modernization report comparing:
@@ -158,10 +173,11 @@ and what evidence could change the recommendation. Give a clear recommendation w
 explicitly address whether a security-only engagement is sufficient. Cite the pass reports and their
 repository evidence. Return detailed Markdown.`,
   path.join(output, "modernization-decision.md"),
+  "modernization decision",
 );
 
 process.stdout.write(`\n[${tasks.length + 3}/${tasks.length + 3}] Executive report\n`);
-runAgent(
+await runAgent(
   `${shared}
 
 Read every report in ${passes} and ${output}/modernization-decision.md. Produce a self-contained,
@@ -171,6 +187,7 @@ risks, dynamic verification results, the recommended repair/staged-replacement/r
 confidence, immediate actions, and questions requiring owner confirmation. Every material statement
 must point to a detailed report or repository-relative evidence. Do not soften uncertainty.`,
   path.join(output, "executive-report.md"),
+  "executive report",
 );
 
 writeFileSync(

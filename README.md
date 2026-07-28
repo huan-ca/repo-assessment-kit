@@ -121,6 +121,10 @@ For Codex:
 Follow the provider’s normal sign-in instructions. Do not place provider passwords or tokens in
 `.env`, the assessment configuration, or a command-line argument.
 
+The assessment uses the signed-in user’s Codex or Claude Code subscription/account. The kit does not
+include an API key or shared provider account. Provider usage limits, billing, and acceptable-use
+terms therefore come from that user’s provider plan.
+
 ## Run the assessment
 
 Running `./start.sh` with no other arguments offers to start the assessment after the readiness
@@ -147,7 +151,8 @@ not modified. The agent then performs separate product, architecture, security, 
 adversarial-review, decision, and executive passes. It may install dependencies and execute the
 copied application inside the assessment container. This uses eight fresh agent sessions and can
 take substantial time on a large repository; that separation is intentional so one shallow context
-does not control the entire recommendation.
+does not control the entire recommendation. While a pass is running, the terminal prints a
+timestamped heartbeat every 20 seconds.
 
 Before the run, the kit asks four optional business questions: target customer, must-preserve
 workflows, competitive differences, and sandbox/startup notes. “Not supplied” is valid, and the

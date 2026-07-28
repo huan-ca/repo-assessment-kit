@@ -119,6 +119,8 @@ describe("provider launcher policy", () => {
     expect(practical).toContain("Independent challenge review");
     expect(practical).toContain("Modernization decision");
     expect(practical).toContain("rak-validate-practical-assessment.mjs");
+    expect(practical).toContain("Still working on");
+    expect(practical).toContain("20_000");
     expect(practicalLauncher).toContain("--git");
     expect(practicalLauncher).toContain("--ref");
     expect(practicalLauncher).toContain('git "${clone_args[@]}"');
