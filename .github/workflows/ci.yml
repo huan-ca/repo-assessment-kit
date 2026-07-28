@@ -28,7 +28,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes shellcheck
-          shellcheck start-codex.sh start-cc.sh scripts/*.sh
+          shellcheck start.sh start-codex.sh start-cc.sh scripts/*.sh
 
   provider-images:
     runs-on: ubuntu-24.04

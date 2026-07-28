@@ -6,6 +6,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const required = [
   "start-codex.sh",
   "start-cc.sh",
+  "start.sh",
   "container/Dockerfile.codex",
   "container/Dockerfile.claude",
   "container/Dockerfile.acquisition",
@@ -19,6 +20,7 @@ const required = [
 for (const file of required) await access(path.join(root, file));
 
 for (const launcher of [
+  "start.sh",
   "start-codex.sh",
   "start-cc.sh",
   "scripts/launcher.sh",

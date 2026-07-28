@@ -29,6 +29,18 @@ const run = (file: string, args: string[] = [], env: NodeJS.ProcessEnv = {}) =>
   });
 
 describe("provider launcher policy", () => {
+  it("provides one plain-language customer entry point", async () => {
+    const launcher = await readFile(path.join(root, "start.sh"), "utf8");
+    expect(launcher).toContain("Recommended mode:");
+    expect(launcher).toContain("generated/preflight-latest.json");
+    expect(launcher).toContain('launcher="$repo_root/start-cc.sh"');
+    expect(launcher).toContain('launcher="$repo_root/start-codex.sh"');
+
+    const result = run("start.sh", [], { RAK_PROVIDER: "unsupported" });
+    expect(result.status).toBe(64);
+    expect(result.stderr).toContain("Provider must be codex or claude.");
+  });
+
   it.each([
     ["start-codex.sh", "--dangerously-bypass-approvals-and-sandbox"],
     ["start-cc.sh", "--dangerously-skip-permissions"],

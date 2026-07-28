@@ -11,6 +11,25 @@ It catalogs the technology, architecture, security findings, important features,
 business context, evidence, coverage gaps, and decision tradeoffs. It does not change the assessed
 repository.
 
+## Start here
+
+For the customer-facing readiness check, run:
+
+```sh
+./start.sh
+```
+
+Choose Claude Code or Codex when prompted. The script creates the engagement ID, checks the
+environment, recommends the fullest compatible assessment mode in plain language, and saves the
+detailed result to `generated/preflight-latest.json`.
+
+You can also choose the provider without a prompt:
+
+```sh
+./start.sh --provider claude
+./start.sh --provider codex
+```
+
 ## Choose the test you want to run
 
 | Test                                                            | What it proves                                                                             | What it needs                                                                              |

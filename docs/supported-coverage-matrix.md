@@ -32,7 +32,7 @@ No emulation result, Docker Desktop observation, parser-only probe, injected bro
 attestation clears a native platform row.
 
 Accepted deterministic product-transition QA is **305/305**, comprising 174 Vitest checks and 126
-release seams. Final full CI also passes 175/175 Vitest, 129/129 release seams, fixtures, shell
+release seams. Final full CI also passes 176/176 Vitest, 129/129 release seams, fixtures, shell
 syntax, build, foundation smoke, and security smoke; the production audit reports no known
 vulnerabilities.
 

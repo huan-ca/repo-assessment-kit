@@ -24,7 +24,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "smoke": "node scripts/smoke.mjs && node scripts/security-smoke.mjs",
-    "shell:check": "bash -n start-codex.sh start-cc.sh scripts/*.sh",
+    "shell:check": "bash -n start.sh start-codex.sh start-cc.sh scripts/*.sh",
     "ci": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm fixtures:verify && pnpm shell:check && pnpm build && pnpm smoke",
     "db:generate": "pnpm --filter @rak/persistence db:generate",
     "db:migrate": "pnpm --filter @rak/persistence db:migrate",
