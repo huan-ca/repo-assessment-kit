@@ -7,6 +7,7 @@ supplies verified multi-architecture image digests:
 RAK_CODEX_IMAGE_DIGEST=sha256:<64-hex> \
 RAK_CLAUDE_IMAGE_DIGEST=sha256:<64-hex> \
 RAK_ACQUISITION_IMAGE_DIGEST=sha256:<64-hex> \
+RAK_BROWSER_IMAGE_DIGEST=sha256:<64-hex> \
 pnpm release:manifest -- release-manifest.json
 ```
 
@@ -27,11 +28,12 @@ The frozen release bundle names are:
 - `release-signature.json`
 - `release-signing-public-key.pem`
 
-The latter three release-specific files are not fabricated by the repository. Release engineering
-must stage every pinned artifact and evidence file named by `toolchain.lock.json`, add exact
-multi-architecture image records, provision a trusted Ed25519 public key, and create a legitimate
-signature outside the repository. The private key must never enter this repository, an image,
-generated output, or a provider/target environment.
+The protected customer-release workflow creates these release-specific files from reviewed
+multi-architecture image evidence and native payloads. Optional external scanner tools may be
+omitted when the assessment reports their coverage as unavailable; every tool included in a release
+lock must still have its exact binary, license, SBOM, provenance, and vulnerability evidence. The
+private key is supplied only through the protected GitHub environment and must never enter this
+repository, an image, generated output, or a provider/target environment.
 
 ## Fail-closed verification
 

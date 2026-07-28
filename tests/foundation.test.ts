@@ -94,6 +94,21 @@ describe("provider launcher policy", () => {
     expect(preflight).toContain("browserCoverageLimitations");
     expect(preflight).not.toContain('block(\n    "playwright_');
   });
+
+  it("keeps customer release signing in a protected GitHub environment", async () => {
+    const workflow = await readFile(
+      path.join(root, ".github/workflows/customer-release.yml"),
+      "utf8",
+    );
+    const signer = await readFile(path.join(root, "scripts/sign-release-bundle.mjs"), "utf8");
+    expect(workflow).toContain("environment: customer-release");
+    expect(workflow).toContain("RAK_RELEASE_SIGNING_PRIVATE_KEY_PEM");
+    expect(workflow).toContain("linux/amd64,linux/arm64");
+    expect(workflow).toContain("actions/attest-build-provenance@v4");
+    expect(workflow).toContain("aquasecurity/trivy-action@v0.36.0");
+    expect(workflow).not.toMatch(/BEGIN (?:EC |RSA |)PRIVATE KEY/u);
+    expect(signer).toContain('privateKey.asymmetricKeyType !== "ed25519"');
+  });
 });
 
 describe("attestations and native gates", () => {

@@ -1,0 +1,275 @@
+name: Protected customer release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: Customer release name (letters, numbers, dots, and hyphens)
+        required: true
+        default: rc1
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: customer-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  native-helper-payloads:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            payload: linux-x86-64
+            node_archive: node-v24.4.1-linux-x64.tar.xz
+          - runner: ubuntu-24.04-arm
+            payload: linux-arm64
+            node_archive: node-v24.4.1-linux-arm64.tar.xz
+          - runner: macos-15-intel
+            payload: macos-x86-64
+            node_archive: node-v24.4.1-darwin-x64.tar.gz
+          - runner: macos-15
+            payload: macos-arm64
+            node_archive: node-v24.4.1-darwin-arm64.tar.gz
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build native helper payload
+        shell: bash
+        env:
+          PAYLOAD: ${{ matrix.payload }}
+          NODE_ARCHIVE: ${{ matrix.node_archive }}
+        run: |
+          set -euo pipefail
+          destination="container/runtime/install/payload/${PAYLOAD}"
+          mkdir -p "$destination" "$RUNNER_TEMP/node"
+          cc -O2 -Wall -Wextra -Werror container/runtime/rak-peer-cred.c \
+            -o "$destination/rak-peer-cred"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            "https://nodejs.org/dist/v24.4.1/${NODE_ARCHIVE}" \
+            --output "$RUNNER_TEMP/${NODE_ARCHIVE}"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            https://nodejs.org/dist/v24.4.1/SHASUMS256.txt \
+            --output "$RUNNER_TEMP/SHASUMS256.txt"
+          (
+            cd "$RUNNER_TEMP"
+            grep "  ${NODE_ARCHIVE}$" SHASUMS256.txt | shasum -a 256 --check -
+          )
+          tar -xf "$RUNNER_TEMP/${NODE_ARCHIVE}" -C "$RUNNER_TEMP/node"
+          node_root="$RUNNER_TEMP/node/${NODE_ARCHIVE%.tar.*}"
+          cp "$node_root/bin/node" "$destination/node"
+          chmod 0755 "$destination/node" "$destination/rak-peer-cred"
+          "$destination/node" --version | grep -Fx v24.4.1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helper-${{ matrix.payload }}
+          path: container/runtime/install/payload/${{ matrix.payload }}/
+          if-no-files-found: error
+          retention-days: 7
+
+  release-images:
+    environment: customer-release
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: codex
+            dockerfile: container/Dockerfile.codex
+          - name: claude
+            dockerfile: container/Dockerfile.claude
+          - name: acquisition
+            dockerfile: container/Dockerfile.acquisition
+          - name: browser
+            dockerfile: container/Dockerfile.browser
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: image
+        shell: bash
+        env:
+          IMAGE_NAME: ${{ matrix.name }}
+        run: |
+          owner=$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "reference=ghcr.io/${owner}/repo-assessment-kit-${IMAGE_NAME}:${GITHUB_SHA}" \
+            >>"$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.image.outputs.reference }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=release-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=release-${{ matrix.name }}
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ steps.image.outputs.reference }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - name: Prepare evidence directory
+        shell: bash
+        env:
+          IMAGE_NAME: ${{ matrix.name }}
+          IMAGE_REFERENCE: ${{ steps.image.outputs.reference }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          BUILD_METADATA: ${{ steps.build.outputs.metadata }}
+        run: |
+          set -euo pipefail
+          evidence="release-evidence/${IMAGE_NAME}"
+          mkdir -p "$evidence"
+          node - "$evidence" <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const directory = process.argv[2];
+          fs.writeFileSync(path.join(directory, "metadata.json"), `${JSON.stringify({
+            name: process.env.IMAGE_NAME,
+            reference: process.env.IMAGE_REFERENCE,
+            digest: process.env.IMAGE_DIGEST,
+            platforms: ["linux/amd64", "linux/arm64"],
+          }, null, 2)}\n`);
+          fs.writeFileSync(path.join(directory, "provenance.json"), `${JSON.stringify({
+            schemaVersion: "rak-image-provenance/1.0.0",
+            repository: process.env.GITHUB_REPOSITORY,
+            sourceCommit: process.env.GITHUB_SHA,
+            workflowRun: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+            buildkitMetadata: JSON.parse(process.env.BUILD_METADATA),
+          }, null, 2)}\n`);
+          NODE
+          cp release/licenses/container-images-NOTICE.txt "$evidence/license.txt"
+      - uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.image.outputs.reference }}@${{ steps.build.outputs.digest }}
+          format: cyclonedx-json
+          output-file: release-evidence/${{ matrix.name }}/sbom.cdx.json
+          upload-artifact: false
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ steps.image.outputs.reference }}@${{ steps.build.outputs.digest }}
+          format: json
+          output: release-evidence/${{ matrix.name }}/vulnerability-scan.json
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          version: v0.70.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-${{ matrix.name }}
+          path: release-evidence/${{ matrix.name }}/
+          if-no-files-found: error
+          retention-days: 7
+
+  assemble-and-sign:
+    environment: customer-release
+    needs: [native-helper-payloads, release-images]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.4.1
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: helper-*
+          path: helper-payloads
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: image-*
+          path: image-evidence
+      - name: Assemble signed release
+        shell: bash
+        env:
+          RELEASE_SIGNING_PRIVATE_KEY_PEM: ${{ secrets.RAK_RELEASE_SIGNING_PRIVATE_KEY_PEM }}
+          RELEASE_NAME: ${{ inputs.release_name }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9.-]{0,63}$ ]]
+          test -n "$RELEASE_SIGNING_PRIVATE_KEY_PEM"
+          for platform in linux-x86-64 linux-arm64 macos-x86-64 macos-arm64; do
+            mkdir -p "container/runtime/install/payload/${platform}"
+            cp "helper-payloads/helper-${platform}/node" \
+              "container/runtime/install/payload/${platform}/node"
+            cp "helper-payloads/helper-${platform}/rak-peer-cred" \
+              "container/runtime/install/payload/${platform}/rak-peer-cred"
+            chmod 0755 "container/runtime/install/payload/${platform}/node" \
+              "container/runtime/install/payload/${platform}/rak-peer-cred"
+          done
+          rm -f release/release-manifest.json release/release-signature.json \
+            release/release-signing-public-key.pem
+          rm -rf release/evidence
+          mkdir -p release/evidence/images
+          for name in codex claude acquisition browser; do
+            mkdir -p "release/evidence/images/${name}"
+            cp "image-evidence/image-${name}/"* "release/evidence/images/${name}/"
+          done
+          rm -f release/toolchain.lock.json
+          node scripts/create-release-toolchain.mjs \
+            --evidence-root release/evidence/images \
+            --output release/toolchain.lock.json
+          for name in codex claude acquisition browser; do
+            upper=$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')
+            reference=$(node -p \
+              "require('./release/evidence/images/${name}/metadata.json').reference")
+            digest=$(node -p \
+              "require('./release/evidence/images/${name}/metadata.json').digest")
+            export "RAK_${upper}_IMAGE_REFERENCE=$reference"
+            export "RAK_${upper}_IMAGE_DIGEST=$digest"
+          done
+          node scripts/create-release-manifest.mjs release/release-manifest.json
+          key_file="$RUNNER_TEMP/release-signing-key.pem"
+          umask 077
+          printf '%s' "$RELEASE_SIGNING_PRIVATE_KEY_PEM" >"$key_file"
+          unset RELEASE_SIGNING_PRIVATE_KEY_PEM
+          node scripts/sign-release-bundle.mjs \
+            --manifest release/release-manifest.json \
+            --toolchain release/toolchain.lock.json \
+            --private-key "$key_file" \
+            --signature release/release-signature.json \
+            --public-key release/release-signing-public-key.pem
+          rm -f "$key_file"
+          verified="$RUNNER_TEMP/verified-release.json"
+          node scripts/verify-release-assets.mjs \
+            --manifest release/release-manifest.json \
+            --toolchain release/toolchain.lock.json \
+            --signature release/release-signature.json \
+            --trusted-key release/release-signing-public-key.pem \
+            --output "$verified"
+          mkdir -p "$RUNNER_TEMP/bundle"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/bundle"
+          cp -R release/. "$RUNNER_TEMP/bundle/release/"
+          cp -R container/runtime/install/payload \
+            "$RUNNER_TEMP/bundle/container/runtime/install/"
+          cp "$verified" "$RUNNER_TEMP/bundle/release/verified-release.json"
+          (
+            cd "$RUNNER_TEMP/bundle"
+            tar -czf "$GITHUB_WORKSPACE/repo-assessment-kit-${RELEASE_NAME}.tar.gz" .
+          )
+          sha256sum "repo-assessment-kit-${RELEASE_NAME}.tar.gz" \
+            >"repo-assessment-kit-${RELEASE_NAME}.tar.gz.sha256"
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: repo-assessment-kit-${{ inputs.release_name }}.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repo-assessment-kit-${{ inputs.release_name }}
+          path: |
+            repo-assessment-kit-${{ inputs.release_name }}.tar.gz
+            repo-assessment-kit-${{ inputs.release_name }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 30

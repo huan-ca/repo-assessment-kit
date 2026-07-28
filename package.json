@@ -20,7 +20,7 @@
     "boundaries": "node scripts/check-workspace-boundaries.mjs",
     "typecheck": "pnpm -r --if-present typecheck && tsc --noEmit -p tsconfig.tests.json",
     "test": "vitest run && pnpm test:release-seams",
-    "test:release-seams": "node --test container/provider-task.test.mjs container/runtime/install/installer-static.test.mjs scripts/engagement-id.test.mjs scripts/host-helper-protocol.test.mjs scripts/provider-broker.test.mjs scripts/immutable-local-snapshot.test.mjs scripts/production-installation-config.test.mjs scripts/provider-successor-package.test.mjs scripts/production-ssh-source.test.mjs scripts/production-runtime-flow.test.mjs scripts/verify-release-assets.test.mjs && node scripts/runtime-launcher-smoke.mjs",
+    "test:release-seams": "node --test container/provider-task.test.mjs container/runtime/install/installer-static.test.mjs scripts/engagement-id.test.mjs scripts/host-helper-protocol.test.mjs scripts/provider-broker.test.mjs scripts/immutable-local-snapshot.test.mjs scripts/production-installation-config.test.mjs scripts/provider-successor-package.test.mjs scripts/production-ssh-source.test.mjs scripts/production-runtime-flow.test.mjs scripts/release-signing.test.mjs scripts/verify-release-assets.test.mjs && node scripts/runtime-launcher-smoke.mjs",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "smoke": "node scripts/smoke.mjs && node scripts/security-smoke.mjs",

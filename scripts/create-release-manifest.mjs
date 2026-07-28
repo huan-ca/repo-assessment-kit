@@ -51,10 +51,15 @@ export const HOST_HELPER_PLATFORM_PATHS = Object.freeze({
 });
 
 const IMAGE_DEFINITIONS = Object.freeze([
-  ["codex", "RAK_CODEX_IMAGE_DIGEST", "rak-codex:0.1.0"],
-  ["claude", "RAK_CLAUDE_IMAGE_DIGEST", "rak-claude:0.1.0"],
-  ["acquisition", "RAK_ACQUISITION_IMAGE_DIGEST", "rak-acquisition:0.1.0"],
-  ["browser", "RAK_BROWSER_IMAGE_DIGEST", "rak-browser:0.1.0"],
+  ["codex", "RAK_CODEX_IMAGE_DIGEST", "RAK_CODEX_IMAGE_REFERENCE", "rak-codex:0.1.0"],
+  ["claude", "RAK_CLAUDE_IMAGE_DIGEST", "RAK_CLAUDE_IMAGE_REFERENCE", "rak-claude:0.1.0"],
+  [
+    "acquisition",
+    "RAK_ACQUISITION_IMAGE_DIGEST",
+    "RAK_ACQUISITION_IMAGE_REFERENCE",
+    "rak-acquisition:0.1.0",
+  ],
+  ["browser", "RAK_BROWSER_IMAGE_DIGEST", "RAK_BROWSER_IMAGE_REFERENCE", "rak-browser:0.1.0"],
 ]);
 const DIGEST = /^sha256:[0-9a-f]{64}$/u;
 
@@ -132,10 +137,14 @@ export async function createReleaseManifestFixtureTestOnly(options) {
 
 function productionImages() {
   return Object.fromEntries(
-    IMAGE_DEFINITIONS.map(([name, variable, reference]) => {
+    IMAGE_DEFINITIONS.map(([name, variable, referenceVariable, defaultReference]) => {
       const digest = process.env[variable];
+      const reference = process.env[referenceVariable] ?? defaultReference;
       if (!DIGEST.test(digest ?? "")) {
         throw new Error(`${variable} must contain a verified sha256 image digest`);
+      }
+      if (!/^[a-z0-9][a-z0-9._/-]{0,299}:[A-Za-z0-9._-]{1,128}$/u.test(reference)) {
+        throw new Error(`${referenceVariable} must contain a tagged image reference`);
       }
       return [name, { reference, digest, platforms: ["linux/amd64", "linux/arm64"] }];
     }),

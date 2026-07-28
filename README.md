@@ -199,6 +199,7 @@ Clients can start with:
 
 Material for the consultant or technical operator:
 
+- [Protected release administrator setup](docs/release-administrator-setup.md)
 - [Operator runbook](docs/operator-runbook.md)
 - [Offline dry-run instructions](docs/offline-assessment.md)
 - [Release checklist](docs/release-checklist.md)

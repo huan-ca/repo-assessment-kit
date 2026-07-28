@@ -135,7 +135,7 @@ identity, paths, arguments, umask, and `RunAtLoad=false`, but launchd does not p
 parity for every Linux systemd sandbox directive. Treat macOS sandbox/hardening parity as an
 unverified native-platform gate, not as a deterministic installer pass.
 
-Final full CI passes 176/176 Vitest checks, 129/129 release seams, fixtures, shell syntax, build,
+Final full CI passes 177/177 Vitest checks, 131/131 release seams, fixtures, shell syntax, build,
 foundation smoke, security smoke, and a production audit with no known vulnerabilities. The CI
 environment has no native C compiler, so it did not compile or execute the four platform-specific
 `rak-peer-cred` payloads. A release operator must retain the NO-GO until real Linux ARM64/x86-64 and

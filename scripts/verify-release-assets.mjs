@@ -314,7 +314,7 @@ async function auditToolchain(value, manifest) {
     lock.schemaVersion !== "1.0.0" ||
     lock.profile !== "rak-toolchain-lock/1.0.0" ||
     !Array.isArray(lock.tools) ||
-    lock.tools.length !== 8
+    lock.tools.length > 8
   )
     throw new Error("toolchain lock identity or inventory is invalid");
   const toolIds = new Set();
