@@ -105,6 +105,8 @@ describe("provider launcher policy", () => {
     expect(workflow).toContain("RAK_RELEASE_SIGNING_PRIVATE_KEY_PEM");
     expect(workflow).toContain("linux/amd64,linux/arm64");
     expect(workflow).toContain("actions/attest-build-provenance@v4");
+    expect(workflow).toContain("subject-name: ${{ steps.image.outputs.name }}");
+    expect(workflow).not.toContain("subject-name: ${{ steps.image.outputs.reference }}");
     expect(workflow).toContain("aquasecurity/trivy-action@v0.36.0");
     expect(workflow).not.toMatch(/BEGIN (?:EC |RSA |)PRIVATE KEY/u);
     expect(signer).toContain('privateKey.asymmetricKeyType !== "ed25519"');
