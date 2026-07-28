@@ -105,6 +105,7 @@ describe("provider launcher policy", () => {
     expect(builder).toContain('"rak-acquisition:0.1.0"');
     expect(builder).toContain('"rak-browser:0.1.0"');
     expect(builder).toContain("sourceFingerprint");
+    expect(builder).not.toContain('run("git"');
     await expect(
       readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
     ).rejects.toThrow();

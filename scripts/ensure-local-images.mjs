@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -30,12 +37,20 @@ function run(command, args, options = {}) {
 }
 
 function sourceFingerprint() {
-  const files = run("git", ["ls-files", "container", "pnpm-lock.yaml", "package.json"], {
-    capture: true,
-  })
-    .split("\n")
-    .filter(Boolean)
-    .sort();
+  const files = ["package.json", "pnpm-lock.yaml"];
+  const visit = (relativeDirectory) => {
+    for (const entry of readdirSync(path.join(root, relativeDirectory)).sort()) {
+      const relativePath = path.join(relativeDirectory, entry);
+      const stat = lstatSync(path.join(root, relativePath));
+      if (stat.isSymbolicLink())
+        throw new Error(`container build input must not be a symbolic link: ${relativePath}`);
+      if (stat.isDirectory()) visit(relativePath);
+      else if (stat.isFile()) files.push(relativePath);
+      else throw new Error(`unsupported container build input: ${relativePath}`);
+    }
+  };
+  visit("container");
+  files.sort();
   const hash = createHash("sha256");
   for (const file of files) {
     hash.update(file);
