@@ -234,7 +234,7 @@ The preview should show:
 
 This test is intentionally unavailable from an unsigned source checkout. It requires:
 
-- an authentic signed release bundle and immutable provider images;
+- an authentic signed release bundle and immutable provider, acquisition, and browser images;
 - the verified root-owned host-helper installation;
 - a dedicated non-root engagement account;
 - rootless Docker;
@@ -277,7 +277,13 @@ not change the `.rak_id` file.
 ```
 
 Preflight prints typed readiness results. A blocked result should explain the missing prerequisite
-and remediation. Do not weaken the control to make preflight green.
+and remediation. Its `recommendation` selects the fullest compatible mode, preferring isolated
+runtime and browser evidence when both are available. Do not weaken a required control to make
+preflight green.
+
+Playwright and Chromium are preinstalled in the signed browser-runner image. Customers do not
+install browser packages on the host. If that image cannot launch, static assessment remains
+available and the report records that screenshots and browser-flow verification were omitted.
 
 ### Step 3 — Authenticate providers
 

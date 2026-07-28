@@ -278,7 +278,8 @@
   "images": {
     "codex": null,
     "claude": null,
-    "acquisition": null
+    "acquisition": null,
+    "browser": null
   },
   "releaseReadiness": {
     "status": "unavailable",
@@ -286,7 +287,7 @@
       "Pinned tool archives and upstream provenance are not staged for offline digest verification.",
       "Every tool requires a staged SBOM and a current vulnerability-scan report; several upstream releases do not publish an SBOM.",
       "Scanner images for linux/amd64 and linux/arm64 have not been built, signed, SBOMed, provenance-attested, vulnerability-scanned, and registered.",
-      "Codex, Claude, and acquisition image digest/evidence records are absent.",
+      "Codex, Claude, acquisition, and browser image digest/evidence records are absent.",
       "A release signing public key and valid Ed25519 release signature have not been provisioned."
     ]
   }

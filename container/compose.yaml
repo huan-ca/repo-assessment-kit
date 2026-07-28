@@ -35,3 +35,13 @@ services:
     volumes:
       - /home/node
     command: [status]
+
+  browser:
+    <<: *rak-common
+    profiles: [browser]
+    build:
+      context: ..
+      dockerfile: container/Dockerfile.browser
+    image: rak-browser:0.1.0
+    shm_size: 256m
+    command: [probe]

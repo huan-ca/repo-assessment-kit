@@ -46,7 +46,7 @@ authorization.
       available deterministic suites.
 - [x] Accepted deterministic product-transition QA passes 305/305 checks, including 174 Vitest
       checks and 126 release seams. This is not native/external release evidence.
-- [x] The final frozen full `pnpm run ci` passes 174/174 Vitest checks, 126/126 release seams,
+- [x] The final frozen full `pnpm run ci` passes 175/175 Vitest checks, 129/129 release seams,
       fixtures, shell syntax, build, foundation smoke, and security smoke; the production audit
       reports no known vulnerabilities.
 - [x] A real loopback Chromium slice passed the rechecked discovery, one-use secret clearing,
@@ -75,7 +75,7 @@ Evidence:
 The production root-helper/runtime/SSH, signed host-installer authority, and public
 pair/review/authorize/release implementations have an accepted deterministic product result:
 **PRODUCT TRANSITION PASS**. The accepted transition QA totals are 305/305, including 174 Vitest
-checks and 126 release seams. Final full CI passes the same 174/174 Vitest and 126/126 seams plus
+checks and 129 release seams. Final full CI passes the same 175/175 Vitest and 129/129 seams plus
 fixtures, shell syntax, build, both smoke gates, and a production audit with no known
 vulnerabilities.
 
@@ -116,8 +116,9 @@ and retain digest-bound evidence.
 - [ ] Stage the exact per-architecture tool archives and separately digest-bound extracted
       executables.
 - [ ] Supply complete tool and image SBOMs, provenance, licenses, and current vulnerability scans.
-- [ ] Supply signed immutable Codex, Claude Code, acquisition, scanner, and support image records
-      for Linux AMD64 and ARM64.
+- [ ] Supply signed immutable Codex, Claude Code, acquisition, browser, scanner, and support image
+      records for Linux AMD64 and ARM64. The browser image contains the pinned Playwright and
+      Chromium versions and runs as non-root.
 - [ ] Complete the protected Ed25519 signing ceremony and verify the exact manifest/toolchain
       digests with the published release public key.
 - [ ] Install the release public key out of band at

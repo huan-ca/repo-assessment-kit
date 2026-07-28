@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [codex, claude, acquisition]
+        provider: [codex, claude, acquisition, browser]
         platform: [linux/amd64, linux/arm64]
     steps:
       - uses: actions/checkout@v4
@@ -50,3 +50,15 @@ jobs:
           push: false
           cache-from: type=gha,scope=${{ matrix.provider }}-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.provider }}-${{ matrix.platform }}
+
+  browser-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --file container/Dockerfile.browser --tag rak-browser:ci .
+      - name: Run networkless Chromium probe
+        run: >-
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges
+          --pids-limit 256 --memory 1g --cpus 2 --tmpfs /tmp:rw,noexec,nosuid,nodev,size=256m
+          --shm-size 256m rak-browser:ci probe

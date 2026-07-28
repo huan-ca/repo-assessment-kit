@@ -38,6 +38,11 @@ const images = {
     digest: tagged("3"),
     platforms: ["linux/amd64", "linux/arm64"],
   },
+  browser: {
+    reference: "rak-browser:0.1.0",
+    digest: tagged("4"),
+    platforms: ["linux/amd64", "linux/arm64"],
+  },
 };
 
 async function writeArtifact(root, relativePath) {

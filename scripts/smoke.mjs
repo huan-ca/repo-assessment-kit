@@ -9,6 +9,8 @@ const required = [
   "container/Dockerfile.codex",
   "container/Dockerfile.claude",
   "container/Dockerfile.acquisition",
+  "container/Dockerfile.browser",
+  "container/browser-probe.mjs",
   "container/compose.yaml",
   "container/runtime/lima.yaml",
   ".env.example",

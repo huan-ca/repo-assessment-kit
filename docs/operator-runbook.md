@@ -135,7 +135,7 @@ identity, paths, arguments, umask, and `RunAtLoad=false`, but launchd does not p
 parity for every Linux systemd sandbox directive. Treat macOS sandbox/hardening parity as an
 unverified native-platform gate, not as a deterministic installer pass.
 
-Final full CI passes 174/174 Vitest checks, 129/129 release seams, fixtures, shell syntax, build,
+Final full CI passes 175/175 Vitest checks, 129/129 release seams, fixtures, shell syntax, build,
 foundation smoke, security smoke, and a production audit with no known vulnerabilities. The CI
 environment has no native C compiler, so it did not compile or execute the four platform-specific
 `rak-peer-cred` payloads. A release operator must retain the NO-GO until real Linux ARM64/x86-64 and
@@ -219,13 +219,16 @@ Preflight is read-only and does not receive a run configuration. It emits one
 `rak-runtime-preflight/1.0.0` JSON document with three readiness profiles:
 
 - `staticRelease` — engagement identifier, authentic release bundle, immutable provider image,
-  rootless Docker and Compose, trusted orchestrator, and repository-local Playwright browser;
+  rootless Docker and Compose, and trusted orchestrator;
 - `isolatedRuntime` — all static controls plus the named native Lima worker; and
 - `interactiveProvider` — all static controls plus a completely configured provider-egress tuple.
 
 It exits 78 only when `staticRelease` is blocked. An isolated-runtime or interactive-provider
 profile may remain blocked in the same report without making the static profile unavailable. SSH,
-age, and host provider CLIs are diagnostics only.
+age, and host provider CLIs are diagnostics only. The top-level `recommendation` names the fullest
+compatible mode in this order: full isolated assessment with browser evidence, isolated assessment
+without browser evidence, static assessment with browser evidence, then static assessment without
+browser evidence.
 
 Preflight does **not** authenticate the provider, validate a source or output path, or verify a
 configured provider-egress attestation. Its `providerEgress.verified` value remains false; the
@@ -233,11 +236,11 @@ launcher verifies and consumes a fresh attestation immediately before `login` or
 and resume have their own configuration/journal checks.
 
 Because preflight does not see `runtime.mode`, read the named readiness profile that matches the
-planned activity. Missing Lima blocks `isolatedRuntime`, not `staticRelease`. The current release
-includes Playwright availability in its static release baseline, so missing Playwright blocks
-`staticRelease` even when the later run is static-only. This is a conservative host-readiness
-result, not evidence that static work ran or failed. Do not weaken preflight to hide the blocker;
-the run receipt must separately state what actually ran.
+planned activity. Missing Lima blocks `isolatedRuntime`, not `staticRelease`. Playwright and
+Chromium are installed in the signed, non-root browser-runner image rather than on the host or in a
+provider image. Preflight runs a bounded, networkless probe in that image. Browser failure appears
+under `limitations.browserCoverage`; it does not block static analysis. The run receipt must still
+state whether screenshots and browser-flow verification actually ran.
 
 Treat any typed `blocked` result as a boundary, not permission to widen access. The correct response
 to a release-asset or image/provenance mismatch is to obtain the authentic matching bundle from the

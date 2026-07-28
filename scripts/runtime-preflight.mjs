@@ -57,22 +57,6 @@ function run(command, argv, timeout = 3_000) {
   };
 }
 
-function runExact(commandPath, argv, timeout = 3_000) {
-  if (!existsSync(commandPath)) return { available: false, ok: false, output: "" };
-  const result = spawnSync(commandPath, argv, {
-    encoding: "utf8",
-    cwd: root,
-    env: { PATH: process.env.PATH ?? "" },
-    stdio: ["ignore", "pipe", "pipe"],
-    timeout,
-  });
-  return {
-    available: true,
-    ok: result.status === 0,
-    output: `${result.stdout ?? ""}${result.stderr ?? ""}`.trim().slice(0, 512),
-  };
-}
-
 function firstVersion(output) {
   return output.match(/\b\d+(?:\.\d+){1,3}(?:[-+._a-zA-Z0-9]*)?\b/u)?.[0] ?? null;
 }
@@ -88,6 +72,7 @@ const releaseVerifier = path.join(root, "scripts/verify-release-assets.mjs");
 const releaseVerificationDir = mkdtempSync(path.join(os.tmpdir(), "rak-release-verify-"));
 const releaseVerificationOutput = path.join(releaseVerificationDir, "verified.json");
 let immutableImageReference = null;
+let immutableBrowserImageReference = null;
 let releaseAssetsVerified = false;
 if (existsSync(releaseVerifier) && !lstatSync(releaseVerifier).isSymbolicLink()) {
   const verification = spawnSync(
@@ -117,13 +102,17 @@ if (existsSync(releaseVerifier) && !lstatSync(releaseVerifier).isSymbolicLink())
     try {
       const value = JSON.parse(readFileSync(releaseVerificationOutput, "utf8"));
       const reference = value?.images?.[imageKey]?.immutableReference;
+      const browserReference = value?.images?.browser?.immutableReference;
       if (
         value?.profile === "rak-verified-release/1.0.0" &&
         value?.verified === true &&
         typeof reference === "string" &&
-        /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/u.test(reference)
+        /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/u.test(reference) &&
+        typeof browserReference === "string" &&
+        /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/u.test(browserReference)
       ) {
         immutableImageReference = reference;
+        immutableBrowserImageReference = browserReference;
         releaseAssetsVerified = true;
       }
     } catch {
@@ -141,43 +130,64 @@ const dockerImage = immutableImageReference
       immutableImageReference,
     ])
   : { available: dockerVersion.available, ok: false, output: "" };
+const browserDockerImage = immutableBrowserImageReference
+  ? run("docker", [
+      "image",
+      "inspect",
+      "--format",
+      '{{.Id}}|{{index .Config.Labels "io.repo-assessment-kit.component"}}|{{index .Config.Labels "io.repo-assessment-kit.playwright-version"}}',
+      immutableBrowserImageReference,
+    ])
+  : { available: dockerVersion.available, ok: false, output: "" };
 const dockerParts = dockerInfo.output.split("|");
 const imageParts = dockerImage.output.split("|");
+const browserImageParts = browserDockerImage.output.split("|");
 const dockerRootless = dockerInfo.ok && dockerParts[0]?.includes("name=rootless");
 const immutableImageTrusted =
   releaseAssetsVerified &&
   dockerImage.ok &&
   /^sha256:[0-9a-f]{64}$/u.test(imageParts[0] ?? "") &&
   imageParts[1] === expectedLabel;
+const immutableBrowserImageTrusted =
+  releaseAssetsVerified &&
+  browserDockerImage.ok &&
+  /^sha256:[0-9a-f]{64}$/u.test(browserImageParts[0] ?? "") &&
+  browserImageParts[1] === "browser" &&
+  browserImageParts[2] === "1.54.1";
+const browserProbe = immutableBrowserImageTrusted
+  ? run(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "--read-only",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--pids-limit",
+        "256",
+        "--memory",
+        "1g",
+        "--cpus",
+        "2",
+        "--tmpfs",
+        "/tmp:rw,noexec,nosuid,nodev,size=256m",
+        "--shm-size",
+        "256m",
+        immutableBrowserImageReference,
+        "probe",
+      ],
+      15_000,
+    )
+  : { available: dockerVersion.available, ok: false, output: "" };
 
 const podman = run("podman", ["version", "--format", "{{.Server.Version}}"]);
 const lima = run("limactl", ["--version"]);
 const ssh = run("ssh", ["-V"]);
 const age = run("age", ["--version"]);
-const repoPlaywrightPath = path.join(root, "node_modules/.bin/playwright");
-const playwright = runExact(repoPlaywrightPath, ["--version"]);
-const playwrightBrowserProbe = spawnSync(
-  process.execPath,
-  [
-    "--input-type=module",
-    "--eval",
-    `import { chromium } from "@playwright/test";
-     import { existsSync } from "node:fs";
-     const executable = chromium.executablePath();
-     if (!executable || !existsSync(executable)) process.exit(2);
-     const browser = await chromium.launch({headless:true});
-     await browser.close();`,
-  ],
-  {
-    cwd: root,
-    encoding: "utf8",
-    env: { PATH: process.env.PATH ?? "" },
-    stdio: ["ignore", "pipe", "pipe"],
-    timeout: 8_000,
-  },
-);
-const playwrightBrowserPresent = playwright.ok && playwrightBrowserProbe.status !== 2;
-const playwrightBrowserSmoke = playwright.ok && playwrightBrowserProbe.status === 0;
 const codexHostCliAvailable = executable("codex") !== null;
 const claudeHostCliAvailable = executable("claude") !== null;
 const orchestratorPath = path.join(root, "scripts/run-release-assessment.mjs");
@@ -230,11 +240,14 @@ if (lima.ok && runtimeInstanceValid) {
 const blockers = [];
 const isolatedRuntimeBlockers = [];
 const interactiveProviderBlockers = [];
+const browserCoverageLimitations = [];
 const block = (code, detail, remediation) => blockers.push({ code, detail, remediation });
 const isolateBlock = (code, detail, remediation) =>
   isolatedRuntimeBlockers.push({ code, detail, remediation });
 const interactiveBlock = (code, detail, remediation) =>
   interactiveProviderBlockers.push({ code, detail, remediation });
+const browserLimit = (code, detail, remediation) =>
+  browserCoverageLimitations.push({ code, detail, remediation });
 if (!engagementValid) {
   interactiveBlock(
     "invalid_engagement_id",
@@ -313,31 +326,63 @@ if (!helperAuthorityAvailable) {
     "Install the signed helper configuration, provider home, image, and network authorities.",
   );
 }
-if (!playwright.ok) {
-  block(
-    "playwright_framework_unavailable",
-    "The release-owned repository-local Playwright CLI is unavailable.",
-    "Install the frozen workspace dependencies; PATH-provided Playwright is not trusted.",
+if (!immutableBrowserImageTrusted) {
+  browserLimit(
+    "browser_image_unavailable_or_mismatched",
+    "The signed browser image containing Playwright and Chromium is unavailable or mismatched.",
+    "Load the exact signed browser image. Static assessment can continue without screenshots.",
   );
-} else if (!playwrightBrowserPresent) {
-  block(
-    "playwright_browser_unavailable",
-    "The release-owned Chromium executable is absent.",
-    "Install the frozen Playwright browser bundle for this platform.",
-  );
-} else if (!playwrightBrowserSmoke) {
-  block(
-    "playwright_browser_smoke_failed",
-    "The release-owned Chromium executable did not pass a bounded headless launch/close smoke.",
-    "Repair the platform browser dependencies before enabling browser coverage.",
+} else if (!browserProbe.ok) {
+  browserLimit(
+    "browser_probe_failed",
+    "The browser image could not complete its bounded Chromium launch test.",
+    "Repair the browser image or continue without screenshots and browser-flow verification.",
   );
 }
+
+const staticAvailable = blockers.length === 0;
+const isolatedAvailable = staticAvailable && isolatedRuntimeBlockers.length === 0;
+const browserAvailable = browserCoverageLimitations.length === 0;
+const recommendation = !staticAvailable
+  ? {
+      mode: "blocked",
+      label: "Not ready to assess",
+      detail: "Resolve the required blockers before starting an assessment.",
+    }
+  : isolatedAvailable && browserAvailable
+    ? {
+        mode: "full-isolated-browser",
+        label: "Full isolated assessment with browser evidence",
+        detail:
+          "This is the fullest compatible mode: isolated runtime testing, screenshots, and browser-flow verification are available.",
+      }
+    : isolatedAvailable
+      ? {
+          mode: "isolated-without-browser",
+          label: "Isolated assessment without browser evidence",
+          detail:
+            "Runtime isolation is available. Continue without screenshots or browser-flow verification.",
+        }
+      : browserAvailable
+        ? {
+            mode: "static-with-browser",
+            label: "Static assessment with browser evidence",
+            detail:
+              "Browser evidence is available, but hostile target runtime isolation is not. Use static analysis and approved external application URLs only.",
+          }
+        : {
+            mode: "static-without-browser",
+            label: "Static assessment without browser evidence",
+            detail:
+              "Code, architecture, dependency, security, and use-case analysis can continue without screenshots or browser-flow verification.",
+          };
 
 const report = {
   schemaVersion: "rak-runtime-preflight/1.0.0",
   generatedAt: new Date().toISOString(),
   provider,
   status: blockers.length === 0 ? "available" : "blocked",
+  recommendation,
   host: {
     platform: os.platform(),
     architecture: os.arch(),
@@ -399,10 +444,14 @@ const report = {
     sshClient: { available: ssh.available, version: firstVersion(ssh.output) },
     age: { available: age.available, version: firstVersion(age.output) },
     playwright: {
-      frameworkAvailable: playwright.ok,
-      version: firstVersion(playwright.output),
-      browserExecutablePresent: playwrightBrowserPresent,
-      boundedLaunchSmoke: playwrightBrowserSmoke,
+      packagedInBrowserImage: true,
+      immutableReference: releaseAssetsVerified ? immutableBrowserImageReference : null,
+      imagePresent: browserDockerImage.ok,
+      immutableIdentityVerified: immutableBrowserImageTrusted,
+      version: immutableBrowserImageTrusted ? browserImageParts[2] : null,
+      browserExecutablePresent: immutableBrowserImageTrusted,
+      boundedLaunchSmoke: browserProbe.ok,
+      optionalForStaticAssessment: true,
     },
     trustedOrchestrator: { available: orchestratorAvailable },
     hostHelper: {
@@ -420,6 +469,7 @@ const report = {
   limitations: {
     isolatedRuntime: isolatedRuntimeBlockers,
     interactiveProvider: interactiveProviderBlockers,
+    browserCoverage: browserCoverageLimitations,
   },
 };
 

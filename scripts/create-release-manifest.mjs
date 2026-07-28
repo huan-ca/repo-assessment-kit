@@ -54,6 +54,7 @@ const IMAGE_DEFINITIONS = Object.freeze([
   ["codex", "RAK_CODEX_IMAGE_DIGEST", "rak-codex:0.1.0"],
   ["claude", "RAK_CLAUDE_IMAGE_DIGEST", "rak-claude:0.1.0"],
   ["acquisition", "RAK_ACQUISITION_IMAGE_DIGEST", "rak-acquisition:0.1.0"],
+  ["browser", "RAK_BROWSER_IMAGE_DIGEST", "rak-browser:0.1.0"],
 ]);
 const DIGEST = /^sha256:[0-9a-f]{64}$/u;
 

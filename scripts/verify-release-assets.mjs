@@ -152,8 +152,8 @@ export function validateManifest(value) {
   )
     throw new Error("release manifest identity is invalid");
   const images = object(manifest.images, "release manifest images");
-  exactKeys(images, ["codex", "claude", "acquisition"], "release manifest images");
-  for (const name of ["codex", "claude", "acquisition"]) {
+  exactKeys(images, ["codex", "claude", "acquisition", "browser"], "release manifest images");
+  for (const name of ["codex", "claude", "acquisition", "browser"]) {
     const image = object(images[name], `${name} manifest image`);
     exactKeys(image, ["reference", "digest", "platforms"], `${name} manifest image`);
     if (
@@ -389,9 +389,9 @@ async function auditToolchain(value, manifest) {
       );
   }
   const images = object(lock.images, "toolchain images");
-  exactKeys(images, ["codex", "claude", "acquisition"], "toolchain images");
+  exactKeys(images, ["codex", "claude", "acquisition", "browser"], "toolchain images");
   const verifiedImages = {};
-  for (const name of ["codex", "claude", "acquisition"]) {
+  for (const name of ["codex", "claude", "acquisition", "browser"]) {
     const record = images[name];
     if (record === null) {
       blockers.push(`${name}: signed image evidence is absent`);

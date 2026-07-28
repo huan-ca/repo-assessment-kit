@@ -22,7 +22,7 @@ case "\${1:-}" in
       shift
     done
     test -n "$output"
-    printf '%s\\n' '{"profile":"rak-verified-release/1.0.0","verified":true,"images":{"codex":{"immutableReference":"registry.invalid/rak-codex@sha256:${"1".repeat(64)}"},"claude":{"immutableReference":"registry.invalid/rak-claude@sha256:${"2".repeat(64)}"},"acquisition":{"immutableReference":"registry.invalid/rak-acquisition@sha256:${"3".repeat(64)}"}}}' >"$output"
+    printf '%s\\n' '{"profile":"rak-verified-release/1.0.0","verified":true,"images":{"codex":{"immutableReference":"registry.invalid/rak-codex@sha256:${"1".repeat(64)}"},"claude":{"immutableReference":"registry.invalid/rak-claude@sha256:${"2".repeat(64)}"},"acquisition":{"immutableReference":"registry.invalid/rak-acquisition@sha256:${"3".repeat(64)}"},"browser":{"immutableReference":"registry.invalid/rak-browser@sha256:${"4".repeat(64)}"}}}' >"$output"
     exit 0
     ;;
   */scripts/verify-network-attestation.mjs) exit 0 ;;
@@ -38,7 +38,7 @@ case "\${1:-}:\${2:-}" in
   image:inspect)
     case "$*" in
       *io.repo-assessment-kit.provider*) printf '%s\\n' "\${RAK_FAKE_PROVIDER_LABEL:-codex}" ;;
-      *) printf '%s\\n' 'sha256:${"4".repeat(64)}' ;;
+      *) printf '%s\\n' 'sha256:${"7".repeat(64)}' ;;
     esac
     exit 0
     ;;

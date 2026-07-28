@@ -22,11 +22,12 @@
     "images": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["codex", "claude", "acquisition"],
+      "required": ["codex", "claude", "acquisition", "browser"],
       "properties": {
         "codex": { "$ref": "#/$defs/image" },
         "claude": { "$ref": "#/$defs/image" },
-        "acquisition": { "$ref": "#/$defs/image" }
+        "acquisition": { "$ref": "#/$defs/image" },
+        "browser": { "$ref": "#/$defs/image" }
       }
     },
     "hostHelper": {

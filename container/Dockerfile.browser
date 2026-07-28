@@ -1,0 +1,27 @@
+FROM node:24.4.1-bookworm-slim@sha256:36ae19f59c91f3303c7a648f07493fe14c4bd91320ac8d898416327bacf1bbfa
+
+ARG PLAYWRIGHT_VERSION=1.54.1
+LABEL org.opencontainers.image.title="Repo Assessment Kit browser runner" \
+      org.opencontainers.image.version="0.1.0" \
+      io.repo-assessment-kit.component="browser" \
+      io.repo-assessment-kit.playwright-version="${PLAYWRIGHT_VERSION}"
+ENV NODE_ENV=production \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/rak-browsers \
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends ca-certificates tini \
+ && rm -rf /var/lib/apt/lists/* \
+ && install -d -m 0755 /opt/rak-browser /opt/rak-browsers \
+ && npm install --prefix /opt/rak-browser --omit=dev --no-audit --no-fund "@playwright/test@${PLAYWRIGHT_VERSION}" \
+ && env -u PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD /opt/rak-browser/node_modules/.bin/playwright install --with-deps chromium \
+ && /opt/rak-browser/node_modules/.bin/playwright --version \
+ && chown -R node:node /opt/rak-browser /opt/rak-browsers \
+ && rm -rf /root/.npm /var/lib/apt/lists/*
+
+COPY --chmod=0444 container/browser-probe.mjs /opt/rak-browser/browser-probe.mjs
+
+USER node
+WORKDIR /opt/rak-browser
+ENTRYPOINT ["/usr/bin/tini", "--", "node", "/opt/rak-browser/browser-probe.mjs"]
+CMD ["probe"]

@@ -58,6 +58,22 @@ describe("provider launcher policy", () => {
     expect(compose).not.toMatch(/ports:|generated|state|\/source|\.ssh|docker\.sock/u);
     expect(compose.match(/\/home\/node/gu)).toHaveLength(2);
   });
+
+  it("packages Playwright in a separate optional browser compartment", async () => {
+    const dockerfile = await readFile(path.join(root, "container/Dockerfile.browser"), "utf8");
+    const probe = await readFile(path.join(root, "container/browser-probe.mjs"), "utf8");
+    const preflight = await readFile(path.join(root, "scripts/runtime-preflight.mjs"), "utf8");
+
+    expect(dockerfile).toContain("@playwright/test@${PLAYWRIGHT_VERSION}");
+    expect(dockerfile).toContain("playwright install --with-deps chromium");
+    expect(dockerfile).toContain("USER node");
+    expect(probe).toContain('process.argv[2] !== "probe"');
+    expect(probe).not.toMatch(/goto\(|process\.env|http:/u);
+    expect(preflight).toContain('"static-without-browser"');
+    expect(preflight).toContain('"full-isolated-browser"');
+    expect(preflight).toContain("browserCoverageLimitations");
+    expect(preflight).not.toContain('block(\n    "playwright_');
+  });
 });
 
 describe("attestations and native gates", () => {

@@ -55,11 +55,11 @@ The signature is Ed25519 over these exact UTF-8 bytes, with the digest values su
 ```
 
 Success emits `rak-verified-release/1.0.0` with `verified: true`, the source commit, authority
-digests, an exact Codex/Claude/acquisition mapping, immutable `reference@sha256:...` values, and the
-native verified age executable record. It produces no verified output on a missing or invalid
-signature, key mismatch, platform mismatch, unstaged artifact, digest mismatch, missing license,
-SBOM, provenance, vulnerability scan, or image evidence. Launchers consume only this verified
-mapping.
+digests, an exact Codex/Claude/acquisition/browser mapping, immutable `reference@sha256:...` values,
+and the native verified age executable record. It produces no verified output on a missing or
+invalid signature, key mismatch, platform mismatch, unstaged artifact, digest mismatch, missing
+license, SBOM, provenance, vulnerability scan, or image evidence. Launchers consume only this
+verified mapping.
 
 `--inventory-only` audits the unsigned inventory and returns exit 2 plus explicit blockers when it
 is incomplete. It never returns `verified: true`.
