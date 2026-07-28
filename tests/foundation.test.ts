@@ -60,10 +60,10 @@ describe("provider launcher policy", () => {
     expect(result.stderr).toContain("trailing provider arguments are not accepted");
   });
 
-  it("admits interactive only through a verified release", () => {
+  it("requires a locally built provider image", () => {
     const result = run("start-codex.sh", ["interactive"]);
-    expect(result.status).toBe(77);
-    expect(result.stderr).toContain("complete signed release bundle");
+    expect([69, 77]).toContain(result.status);
+    expect(result.stderr).not.toContain("signed release bundle");
   });
 
   it.each(["run", "resume"])("refuses unbrokered %s", (verb) => {
@@ -95,21 +95,19 @@ describe("provider launcher policy", () => {
     expect(preflight).not.toContain('block(\n    "playwright_');
   });
 
-  it("keeps customer release signing in a protected GitHub environment", async () => {
-    const workflow = await readFile(
-      path.join(root, ".github/workflows/customer-release.yml"),
-      "utf8",
-    );
-    const signer = await readFile(path.join(root, "scripts/sign-release-bundle.mjs"), "utf8");
-    expect(workflow).toContain("environment: customer-release");
-    expect(workflow).toContain("RAK_RELEASE_SIGNING_PRIVATE_KEY_PEM");
-    expect(workflow).toContain("linux/amd64,linux/arm64");
-    expect(workflow).toContain("actions/attest-build-provenance@v4");
-    expect(workflow).toContain("subject-name: ${{ steps.image.outputs.name }}");
-    expect(workflow).not.toContain("subject-name: ${{ steps.image.outputs.reference }}");
-    expect(workflow).toContain("aquasecurity/trivy-action@v0.36.0");
-    expect(workflow).not.toMatch(/BEGIN (?:EC |RSA |)PRIVATE KEY/u);
-    expect(signer).toContain('privateKey.asymmetricKeyType !== "ed25519"');
+  it("builds and records all containers locally without a signing workflow", async () => {
+    const builder = await readFile(path.join(root, "scripts/ensure-local-images.mjs"), "utf8");
+    expect(builder).toContain("generated");
+    expect(builder).toContain("local-images.json");
+    expect(builder).toContain('"name=rootless"');
+    expect(builder).toContain('"rak-codex:0.1.0"');
+    expect(builder).toContain('"rak-claude:0.1.0"');
+    expect(builder).toContain('"rak-acquisition:0.1.0"');
+    expect(builder).toContain('"rak-browser:0.1.0"');
+    expect(builder).toContain("sourceFingerprint");
+    await expect(
+      readFile(path.join(root, ".github/workflows/customer-release.yml"), "utf8"),
+    ).rejects.toThrow();
   });
 });
 

@@ -66,45 +66,19 @@ docker info --format '{{json .SecurityOptions}}' 2>/dev/null | grep -q 'name=roo
   exit 77
 }
 
-release_verifier="$repo_root/scripts/verify-release-assets.mjs"
-[[ -f "$release_verifier" && ! -L "$release_verifier" ]] || {
-  echo "RAK_ACQUISITION_BLOCKED code=release_verifier_unavailable remediation='Install the complete signed release bundle.'" >&2
-  exit 78
-}
-verification_dir=$(mktemp -d "${TMPDIR:-/tmp}/rak-release-verify.XXXXXXXX")
-chmod 0700 "$verification_dir"
-verification_output="$verification_dir/verified.json"
-cleanup_verification() {
-  rm -f -- "$verification_output"
-  rmdir -- "$verification_dir" 2>/dev/null || true
-}
-trap cleanup_verification EXIT HUP INT TERM
-if ! node "$release_verifier" \
-  --manifest "$repo_root/release/release-manifest.json" \
-  --toolchain "$repo_root/release/toolchain.lock.json" \
-  --signature "$repo_root/release/release-signature.json" \
-  --trusted-key "$repo_root/release/release-signing-public-key.pem" \
-  --output "$verification_output" >/dev/null 2>&1; then
-  echo "RAK_ACQUISITION_BLOCKED code=release_assets_unverified remediation='Install valid signed release assets and provenance.'" >&2
-  exit 77
-fi
-image=$(node -e '
-  const fs = require("node:fs");
-  const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-  const reference = value?.images?.acquisition?.immutableReference;
-  if (value?.profile !== "rak-verified-release/1.0.0" || value?.verified !== true ||
-      typeof reference !== "string" ||
-      !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/.test(reference)) process.exit(1);
-  process.stdout.write(reference);
-' "$verification_output") || {
-  echo "RAK_ACQUISITION_BLOCKED code=release_assets_malformed remediation='Regenerate and sign the frozen release bundle.'" >&2
-  exit 77
-}
-cleanup_verification
-trap - EXIT HUP INT TERM
-docker image inspect "$image" >/dev/null 2>&1 || {
-  echo "RAK_ACQUISITION_BLOCKED code=acquisition_image_unavailable remediation='Load the exact signed image; do not retag a substitute.'" >&2
+image=$(docker image inspect --format '{{.Id}}' rak-acquisition:0.1.0 2>/dev/null) || {
+  echo "RAK_ACQUISITION_BLOCKED code=acquisition_image_unavailable remediation='Run ./start.sh build-images.'" >&2
   exit 69
+}
+[[ "$image" =~ ^sha256:[0-9a-f]{64}$ ]] || {
+  echo "RAK_ACQUISITION_BLOCKED code=acquisition_image_invalid remediation='Rebuild the local images.'" >&2
+  exit 77
+}
+component=$(docker image inspect \
+  --format '{{index .Config.Labels "io.repo-assessment-kit.component"}}' "$image" 2>/dev/null || true)
+[[ "$component" == acquisition ]] || {
+  echo "RAK_ACQUISITION_BLOCKED code=acquisition_image_mismatched remediation='Rebuild the local images.'" >&2
+  exit 77
 }
 
 if [[ "$mode" == ssh ]]; then

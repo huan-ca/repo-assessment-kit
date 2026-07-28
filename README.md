@@ -29,7 +29,6 @@ Unknown information is recorded as unknown. The kit does not silently turn guess
 Your technical contact should provide:
 
 - this assessment-kit folder;
-- a complete signed customer release, when a full assessment is expected;
 - access to the repository being assessed;
 - a Codex or Claude Code account;
 - an assessment configuration file; and
@@ -50,9 +49,14 @@ Choose Claude Code or Codex when asked. The script will:
 
 1. create a private identifier for this assessment;
 2. check the available security and browser capabilities;
-3. recommend the fullest compatible assessment mode;
-4. explain required problems in plain language; and
-5. save the technical details to `generated/preflight-latest.json`.
+3. offer to build the assessment containers locally when they are missing;
+4. recommend the fullest compatible assessment mode;
+5. explain required problems in plain language; and
+6. save the technical details to `generated/preflight-latest.json`.
+
+The containers are built from this folder on the client’s machine. Nothing needs to be downloaded
+from a private container registry, and there is no release-signing setup. Docker reuses its build
+cache on later runs. The local image record is kept in `generated/local-images.json`.
 
 If your technical contact already told you which provider to use, you can skip the question:
 
@@ -92,9 +96,9 @@ Send this file to your technical contact:
 generated/preflight-latest.json
 ```
 
-The most common causes are an incomplete customer release, an unavailable Docker environment, or a
-missing assessment helper. These are deployment tasks for the technical operator—not tasks the
-client is expected to solve.
+The most common causes are an unavailable Docker environment, containers that have not finished
+building, or a missing assessment helper. The guided start command handles the local container
+build.
 
 On macOS, if Docker is installed but does not meet the rootless safety check, `./start.sh` offers a
 guided repair. It explains each change and asks before installing Lima, creating the separate
@@ -199,7 +203,6 @@ Clients can start with:
 
 Material for the consultant or technical operator:
 
-- [Protected release administrator setup](docs/release-administrator-setup.md)
 - [Operator runbook](docs/operator-runbook.md)
 - [Offline dry-run instructions](docs/offline-assessment.md)
 - [Release checklist](docs/release-checklist.md)

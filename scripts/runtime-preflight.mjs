@@ -1,13 +1,5 @@
 #!/usr/bin/env node
-import {
-  accessSync,
-  constants,
-  existsSync,
-  lstatSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-} from "node:fs";
+import { accessSync, constants, existsSync, lstatSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -68,93 +60,36 @@ const dockerInfo = run("docker", [
   "{{json .SecurityOptions}}|{{.Architecture}}|{{.OSType}}",
 ]);
 const dockerCompose = run("docker", ["compose", "version", "--short"]);
-const releaseVerifier = path.join(root, "scripts/verify-release-assets.mjs");
-const releaseVerificationDir = mkdtempSync(path.join(os.tmpdir(), "rak-release-verify-"));
-const releaseVerificationOutput = path.join(releaseVerificationDir, "verified.json");
-let immutableImageReference = null;
-let immutableBrowserImageReference = null;
-let releaseAssetsVerified = false;
-if (existsSync(releaseVerifier) && !lstatSync(releaseVerifier).isSymbolicLink()) {
-  const verification = spawnSync(
-    process.execPath,
-    [
-      releaseVerifier,
-      "--manifest",
-      path.join(root, "release/release-manifest.json"),
-      "--toolchain",
-      path.join(root, "release/toolchain.lock.json"),
-      "--signature",
-      path.join(root, "release/release-signature.json"),
-      "--trusted-key",
-      path.join(root, "release/release-signing-public-key.pem"),
-      "--output",
-      releaseVerificationOutput,
-    ],
-    {
-      cwd: root,
-      encoding: "utf8",
-      env: { PATH: process.env.PATH ?? "" },
-      stdio: ["ignore", "pipe", "pipe"],
-      timeout: 5_000,
-    },
-  );
-  if (verification.status === 0) {
-    try {
-      const value = JSON.parse(readFileSync(releaseVerificationOutput, "utf8"));
-      const reference = value?.images?.[imageKey]?.immutableReference;
-      const browserReference = value?.images?.browser?.immutableReference;
-      if (
-        value?.profile === "rak-verified-release/1.0.0" &&
-        value?.verified === true &&
-        typeof reference === "string" &&
-        /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/u.test(reference) &&
-        typeof browserReference === "string" &&
-        /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/u.test(browserReference)
-      ) {
-        immutableImageReference = reference;
-        immutableBrowserImageReference = browserReference;
-        releaseAssetsVerified = true;
-      }
-    } catch {
-      // Report the closed verification failure below.
-    }
-  }
-}
-rmSync(releaseVerificationDir, { recursive: true, force: true });
-const dockerImage = immutableImageReference
-  ? run("docker", [
-      "image",
-      "inspect",
-      "--format",
-      '{{.Id}}|{{index .Config.Labels "io.repo-assessment-kit.provider"}}',
-      immutableImageReference,
-    ])
-  : { available: dockerVersion.available, ok: false, output: "" };
-const browserDockerImage = immutableBrowserImageReference
-  ? run("docker", [
-      "image",
-      "inspect",
-      "--format",
-      '{{.Id}}|{{index .Config.Labels "io.repo-assessment-kit.component"}}|{{index .Config.Labels "io.repo-assessment-kit.playwright-version"}}',
-      immutableBrowserImageReference,
-    ])
-  : { available: dockerVersion.available, ok: false, output: "" };
+const localImageReference = imageKey === "codex" ? "rak-codex:0.1.0" : "rak-claude:0.1.0";
+const localBrowserImageReference = "rak-browser:0.1.0";
+const dockerImage = run("docker", [
+  "image",
+  "inspect",
+  "--format",
+  '{{.Id}}|{{index .Config.Labels "io.repo-assessment-kit.provider"}}',
+  localImageReference,
+]);
+const browserDockerImage = run("docker", [
+  "image",
+  "inspect",
+  "--format",
+  '{{.Id}}|{{index .Config.Labels "io.repo-assessment-kit.component"}}|{{index .Config.Labels "io.repo-assessment-kit.playwright-version"}}',
+  localBrowserImageReference,
+]);
 const dockerParts = dockerInfo.output.split("|");
 const imageParts = dockerImage.output.split("|");
 const browserImageParts = browserDockerImage.output.split("|");
 const dockerRootless = dockerInfo.ok && dockerParts[0]?.includes("name=rootless");
-const immutableImageTrusted =
-  releaseAssetsVerified &&
+const localImageReady =
   dockerImage.ok &&
   /^sha256:[0-9a-f]{64}$/u.test(imageParts[0] ?? "") &&
   imageParts[1] === expectedLabel;
-const immutableBrowserImageTrusted =
-  releaseAssetsVerified &&
+const localBrowserImageReady =
   browserDockerImage.ok &&
   /^sha256:[0-9a-f]{64}$/u.test(browserImageParts[0] ?? "") &&
   browserImageParts[1] === "browser" &&
   browserImageParts[2] === "1.54.1";
-const browserProbe = immutableBrowserImageTrusted
+const browserProbe = localBrowserImageReady
   ? run(
       "docker",
       [
@@ -177,7 +112,7 @@ const browserProbe = immutableBrowserImageTrusted
         "/tmp:rw,noexec,nosuid,nodev,size=256m",
         "--shm-size",
         "256m",
-        immutableBrowserImageReference,
+        localBrowserImageReference,
         "probe",
       ],
       15_000,
@@ -281,24 +216,18 @@ if (dockerVersion.ok && !dockerCompose.ok) {
     "Install the Docker Compose v2 plugin used by the release runtime.",
   );
 }
-if (!releaseAssetsVerified) {
+if (dockerVersion.ok && dockerInfo.ok && dockerRootless && !localImageReady) {
   block(
-    "release_assets_unverified",
-    "The fixed release manifest, toolchain lock, signature, provenance, or pinned signing key did not verify.",
-    "Install the complete signed release bundle; mutable tags and self-declared labels are prohibited.",
-  );
-} else if (!immutableImageTrusted) {
-  block(
-    "provider_image_unavailable_or_mismatched",
-    `The signed release-owned ${provider} immutable image is absent or its secondary identity label is invalid.`,
-    "Load the exact verifier-returned immutable image for this platform; do not retag a substitute.",
+    "local_provider_image_unavailable",
+    `The ${provider} assessment container has not been built locally yet.`,
+    "Build the containers from this repository. The guided start command can do this for you.",
   );
 }
 if (!orchestratorAvailable) {
   block(
     "orchestrator_unavailable",
     "The trusted host release orchestrator is absent or is a symbolic link.",
-    "Install the signed release bundle containing scripts/run-release-assessment.mjs.",
+    "Restore scripts/run-release-assessment.mjs from this repository.",
   );
 }
 if (!lima.ok) {
@@ -315,10 +244,10 @@ if (!lima.ok) {
   );
 }
 if (!helperAuthorityAvailable) {
-  block(
+  isolateBlock(
     "host_helper_authority_unavailable",
-    "The fixed root-owned host-helper socket, key, or signed configuration is unavailable.",
-    "Install and start the signed production host helper; direct Docker/Lima fallback is prohibited.",
+    "The advanced isolated-runtime helper is unavailable.",
+    "Ask the technical operator to install the host helper if runtime execution is required. Static assessment can continue.",
   );
   interactiveBlock(
     "provider_helper_authority_unavailable",
@@ -326,11 +255,11 @@ if (!helperAuthorityAvailable) {
     "Install the signed helper configuration, provider home, image, and network authorities.",
   );
 }
-if (!immutableBrowserImageTrusted) {
+if (!localBrowserImageReady) {
   browserLimit(
-    "browser_image_unavailable_or_mismatched",
-    "The signed browser image containing Playwright and Chromium is unavailable or mismatched.",
-    "Load the exact signed browser image. Static assessment can continue without screenshots.",
+    "browser_image_unavailable",
+    "The local browser container containing Playwright and Chromium has not been built.",
+    "Build the local containers or continue without screenshots.",
   );
 } else if (!browserProbe.ok) {
   browserLimit(
@@ -430,10 +359,11 @@ const report = {
       nativeArchitectureRequired: true,
     },
     providerImage: {
-      immutableReference: releaseAssetsVerified ? immutableImageReference : null,
-      releaseAssetsVerified,
+      reference: localImageReference,
+      builtLocally: true,
       present: dockerImage.ok,
-      immutableIdentityVerified: immutableImageTrusted,
+      imageId: localImageReady ? imageParts[0] : null,
+      identityVerified: localImageReady,
     },
     providerHostCliDiagnosticOnly: {
       codex: { available: codexHostCliAvailable, executed: false },
@@ -445,11 +375,11 @@ const report = {
     age: { available: age.available, version: firstVersion(age.output) },
     playwright: {
       packagedInBrowserImage: true,
-      immutableReference: releaseAssetsVerified ? immutableBrowserImageReference : null,
+      reference: localBrowserImageReference,
       imagePresent: browserDockerImage.ok,
-      immutableIdentityVerified: immutableBrowserImageTrusted,
-      version: immutableBrowserImageTrusted ? browserImageParts[2] : null,
-      browserExecutablePresent: immutableBrowserImageTrusted,
+      identityVerified: localBrowserImageReady,
+      version: localBrowserImageReady ? browserImageParts[2] : null,
+      browserExecutablePresent: localBrowserImageReady,
       boundedLaunchSmoke: browserProbe.ok,
       optionalForStaticAssessment: true,
     },

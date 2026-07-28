@@ -1,5 +1,0 @@
-Repository Assessment Kit container image notice
-
-The complete component and license inventory for each release image is recorded in its accompanying
-CycloneDX software bill of materials. Base-image and installed-package licenses remain the property
-of their respective copyright holders and are redistributed under their applicable terms.

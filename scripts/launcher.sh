@@ -99,7 +99,7 @@ if [[ "$verb" == pair || "$verb" == review || "$verb" == authorize || "$verb" ==
   readonly transition="$repo_root/scripts/public-release-transition.mjs"
   if [[ ! -f "$transition" || -L "$transition" ]]; then
     blocked release_transition_unavailable \
-      "Install the signed release bundle containing scripts/public-release-transition.mjs." \
+      "Restore scripts/public-release-transition.mjs from this repository." \
       "trusted public release transition is absent or symbolic"
     exit "$EX_CONFIG"
   fi
@@ -167,7 +167,7 @@ if [[ "$verb" == run || "$verb" == resume ]]; then
   readonly orchestrator="$repo_root/scripts/run-release-assessment.mjs"
   if [[ ! -f "$orchestrator" || -L "$orchestrator" ]]; then
     blocked orchestrator_unavailable \
-      "Install the signed release bundle containing scripts/run-release-assessment.mjs; direct provider execution is never a fallback." \
+      "Restore scripts/run-release-assessment.mjs from this repository; direct provider execution is never a fallback." \
       "trusted host release orchestrator is absent or is a symbolic link"
     exit "$EX_CONFIG"
   fi
@@ -176,50 +176,6 @@ if [[ "$verb" == run || "$verb" == resume ]]; then
   fi
   exec node "$orchestrator" resume --provider "$provider" --run-dir "$argument"
 fi
-
-readonly release_verifier="$repo_root/scripts/verify-release-assets.mjs"
-readonly release_manifest="$repo_root/release/release-manifest.json"
-readonly toolchain_lock="$repo_root/release/toolchain.lock.json"
-readonly release_signature="$repo_root/release/release-signature.json"
-readonly release_key="$repo_root/release/release-signing-public-key.pem"
-if [[ ! -f "$release_verifier" || -L "$release_verifier" ]]; then
-  blocked release_verifier_unavailable \
-    "Install the signed release bundle containing scripts/verify-release-assets.mjs." \
-    "release asset verifier is absent or symbolic"
-  exit "$EX_CONFIG"
-fi
-verification_dir=$(mktemp -d "${TMPDIR:-/tmp}/rak-release-verify.XXXXXXXX") || exit "$EX_UNAVAILABLE"
-chmod 0700 "$verification_dir"
-verification_output="$verification_dir/verified.json"
-cleanup_verification() { rm -f -- "$verification_output"; rmdir -- "$verification_dir" 2>/dev/null || true; }
-trap cleanup_verification EXIT HUP INT TERM
-if ! node "$release_verifier" \
-  --manifest "$release_manifest" \
-  --toolchain "$toolchain_lock" \
-  --signature "$release_signature" \
-  --trusted-key "$release_key" \
-  --output "$verification_output" >/dev/null 2>&1; then
-  blocked release_assets_unverified \
-    "Install a complete signed release bundle with manifest, toolchain lock, signature, provenance evidence, and pinned public key." \
-    "release asset verification failed; mutable tags and self-declared labels are never trusted"
-  exit "$EX_NOPERM"
-fi
-if ! immutable_image=$(node -e '
-  const fs = require("node:fs");
-  const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-  const reference = value?.images?.[process.argv[2]]?.immutableReference;
-  if (value?.profile !== "rak-verified-release/1.0.0" || value?.verified !== true ||
-      typeof reference !== "string" ||
-      !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[0-9a-f]{64}$/.test(reference)) process.exit(1);
-  process.stdout.write(reference);
-' "$verification_output" "$image_key"); then
-  blocked release_assets_malformed \
-    "Regenerate and sign the release bundle with the frozen release-assets verifier." \
-    "verified release output did not contain the closed immutable provider reference"
-  exit "$EX_NOPERM"
-fi
-cleanup_verification
-trap - EXIT HUP INT TERM
 
 if ! command -v docker >/dev/null 2>&1; then
   blocked docker_unavailable \
@@ -239,22 +195,26 @@ if ! docker info --format '{{json .SecurityOptions}}' 2>/dev/null | grep -q 'nam
     "active Docker daemon did not attest rootless mode"
   exit "$EX_NOPERM"
 fi
-if ! image_id=$(docker image inspect --format '{{.Id}}' "$immutable_image" 2>/dev/null); then
+case "$image_key" in
+  codex) readonly local_image="rak-codex:0.1.0" ;;
+  claude) readonly local_image="rak-claude:0.1.0" ;;
+esac
+if ! image_id=$(docker image inspect --format '{{.Id}}' "$local_image" 2>/dev/null); then
   blocked provider_image_unavailable \
-    "Load the exact signed release image for this platform, then rerun preflight; do not retag a substitute." \
-    "verified immutable provider image is absent locally"
+    "Run ./start.sh preflight and choose the local container build when prompted." \
+    "the locally built provider image is absent"
   exit "$EX_UNAVAILABLE"
 fi
 if [[ ! "$image_id" =~ ^sha256:[0-9a-f]{64}$ ]]; then
   blocked provider_image_unpinned \
-    "Rebuild the signed release provider image and verify its immutable content digest." \
+    "Run node scripts/ensure-local-images.mjs to rebuild the local provider image." \
     "Docker returned a non-content-addressed image identifier"
   exit "$EX_NOPERM"
 fi
 actual_provider=$(docker image inspect --format '{{index .Config.Labels "io.repo-assessment-kit.provider"}}' "$image_id" 2>/dev/null || true)
 if [[ "$actual_provider" != "$provider_label" ]]; then
   blocked provider_image_identity_mismatch \
-    "Use the release-owned image built from the matching pinned provider Dockerfile." \
+    "Rebuild the local image from the matching provider Dockerfile." \
     "provider image identity label is absent or mismatched"
   exit "$EX_NOPERM"
 fi
@@ -301,4 +261,4 @@ if [[ "$verb" == login || "$verb" == interactive ]]; then
   docker_args+=(-it)
 fi
 
-exec docker "${docker_args[@]}" "$immutable_image" "$verb"
+exec docker "${docker_args[@]}" "$image_id" "$verb"

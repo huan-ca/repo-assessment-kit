@@ -7,7 +7,7 @@ cd "$repo_root"
 
 usage() {
   printf '%s\n' \
-    "usage: ./start.sh [--provider codex|claude] [preflight|login|status|interactive]" \
+    "usage: ./start.sh [--provider codex|claude] [preflight|build-images|login|status|interactive]" \
     "       ./start.sh --provider codex|claude run --config <path>" \
     "       ./start.sh --provider codex|claude resume --run-dir <path>" \
     "" \
@@ -62,6 +62,10 @@ esac
 command=${1:-preflight}
 if [[ $# -gt 0 ]]; then shift; fi
 case "$command" in
+  build-images)
+    [[ $# -eq 0 ]] || usage
+    node "$repo_root/scripts/ensure-local-images.mjs"
+    ;;
   preflight)
     [[ $# -eq 0 ]] || usage
     mkdir -p "$repo_root/generated"
@@ -119,6 +123,45 @@ NODE
           exec "$repo_root/start.sh" --provider "$provider_name" preflight
         fi
         printf '%s\n' "Docker setup did not complete. The assessment remains safely blocked." >&2
+      fi
+    fi
+    local_images_missing=$(
+      node -e '
+        const fs = require("node:fs");
+        const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+        process.stdout.write(
+          value.blockers?.some((item) => item.code === "local_provider_image_unavailable")
+            ? "yes"
+            : "no",
+        );
+      ' "$report"
+    )
+    docker_ready=$(
+      node -e '
+        const fs = require("node:fs");
+        const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+        process.stdout.write(
+          value.capabilities?.docker?.daemonReachable &&
+          value.capabilities?.docker?.rootless &&
+          value.capabilities?.docker?.composeV2
+            ? "yes"
+            : "no",
+        );
+      ' "$report"
+    )
+    if [[ "$local_images_missing" == yes && "$docker_ready" == yes && -t 0 ]]; then
+      printf '\nThe assessment containers need to be built on this computer.\n'
+      printf 'This downloads the pinned tools and can take several minutes the first time.\n'
+      if read -r -p "Build them now? [Y/n]: " build_answer &&
+        [[ -z "$build_answer" || "$build_answer" == y || "$build_answer" == Y ||
+          "$build_answer" == yes || "$build_answer" == YES ]]
+      then
+        if node "$repo_root/scripts/ensure-local-images.mjs"; then
+          rm -f -- "$report"
+          trap - EXIT HUP INT TERM
+          exec "$repo_root/start.sh" --provider "$provider_name" preflight
+        fi
+        printf '%s\n' "The local container build did not complete." >&2
       fi
     fi
     final_report="$repo_root/generated/preflight-latest.json"

@@ -25,9 +25,9 @@ inputs.
 `preflight` emits `rak-runtime-preflight/1.0.0` JSON and exits 78 when static release controls are
 blocked. It reports static readiness separately from isolated-runtime readiness. It diagnoses
 Docker, Podman (unsupported diagnostic only), Lima/native architecture, host provider CLIs
-(diagnostic only), SSH, age, the signed browser image containing Playwright and Chromium, signed
-immutable images, and the trusted orchestrator. It does not consume or claim to verify a one-use
-egress attestation.
+(diagnostic only), SSH, age, the locally built browser image containing Playwright and Chromium,
+locally built provider images, and the trusted orchestrator. It does not consume or claim to verify
+a one-use egress attestation.
 
 `run` and `resume` pass only the fixed provider identity and validated path to
 `scripts/run-release-assessment.mjs`. They never mount the interactive home or invoke the private

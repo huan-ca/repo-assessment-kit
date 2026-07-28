@@ -4,10 +4,8 @@ Choose the guide for your role:
 
 - [Customer quickstart](customer-quickstart.md) — what the assessment does, the ten discovery
   topics, evidence and coverage meanings, and what to check before accepting delivery.
-- [Operator runbook](operator-runbook.md) — signed release preparation, provider flows, strict run
+- [Operator runbook](operator-runbook.md) — local container preparation, provider flows, strict run
   configuration, local and SSH sources, safe runtime boundaries, recovery, and package verification.
-- [Protected release administrator setup](release-administrator-setup.md) — configure the approved
-  GitHub environment, Ed25519 signing secret, and protected customer-release workflow.
 - [Customer package review guide](package-review-guide.md) — report reading order and the questions
   a technical or lay reviewer should be able to answer.
 - [Release checklist](release-checklist.md) — deterministic evidence already established and the

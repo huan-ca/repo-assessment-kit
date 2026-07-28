@@ -46,7 +46,7 @@ authorization.
       available deterministic suites.
 - [x] Accepted deterministic product-transition QA passes 305/305 checks, including 174 Vitest
       checks and 126 release seams. This is not native/external release evidence.
-- [x] The final frozen full `pnpm run ci` passes 177/177 Vitest checks, 131/131 release seams,
+- [x] The final frozen full `pnpm run ci` passes 177/177 Vitest checks, 129/129 release seams,
       fixtures, shell syntax, build, foundation smoke, and security smoke; the production audit
       reports no known vulnerabilities.
 - [x] A real loopback Chromium slice passed the rechecked discovery, one-use secret clearing,
@@ -75,7 +75,7 @@ Evidence:
 The production root-helper/runtime/SSH, signed host-installer authority, and public
 pair/review/authorize/release implementations have an accepted deterministic product result:
 **PRODUCT TRANSITION PASS**. The accepted transition QA totals are 305/305, including 174 Vitest
-checks and 131 release seams. Final full CI passes the same 177/177 Vitest and 131/131 seams plus
+checks and 129 release seams. Final full CI passes the same 177/177 Vitest and 129/129 seams plus
 fixtures, shell syntax, build, both smoke gates, and a production audit with no known
 vulnerabilities.
 

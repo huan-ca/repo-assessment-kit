@@ -57,10 +57,10 @@ orchestrator; `interactive` invokes only the provider's fixed entrypoint command
 or environment-variable flag bypass. No private broker signing material belongs in either provider
 image.
 
-`container/compose.yaml` is a networkless build/status diagnostic only. Its `/home/node` mounts are
-fresh anonymous volumes, so it cannot retain login credentials or stand in for the public launchers.
-Credentialed launchers verify the signed release-assets bundle and run only the verifier-returned
-`reference@sha256:...`; mutable Compose tags and self-declared labels are never authority.
+`container/compose.yaml` builds the four local assessment images and provides a networkless status
+diagnostic. Its `/home/node` mounts are fresh anonymous volumes, so it cannot retain login
+credentials or stand in for the public launchers. Credentialed launchers inspect the locally built
+image identity label, resolve the tag to a content-addressed Docker image ID, and run that ID.
 
 The fixed flags and sterile-home contract are deterministic release controls, not evidence that a
 real provider version ignores every plugin/config surface. P7 real-CLI canary evidence must prove

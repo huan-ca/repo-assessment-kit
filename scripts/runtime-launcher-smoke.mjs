@@ -15,16 +15,6 @@ try {
   const nodeHarness = `#!/bin/sh
 set -eu
 case "\${1:-}" in
-  */scripts/verify-release-assets.mjs)
-    output=
-    while [ "$#" -gt 0 ]; do
-      if [ "$1" = --output ]; then output=$2; break; fi
-      shift
-    done
-    test -n "$output"
-    printf '%s\\n' '{"profile":"rak-verified-release/1.0.0","verified":true,"images":{"codex":{"immutableReference":"registry.invalid/rak-codex@sha256:${"1".repeat(64)}"},"claude":{"immutableReference":"registry.invalid/rak-claude@sha256:${"2".repeat(64)}"},"acquisition":{"immutableReference":"registry.invalid/rak-acquisition@sha256:${"3".repeat(64)}"},"browser":{"immutableReference":"registry.invalid/rak-browser@sha256:${"4".repeat(64)}"}}}' >"$output"
-    exit 0
-    ;;
   */scripts/verify-network-attestation.mjs) exit 0 ;;
 esac
 exec ${JSON.stringify(realNode)} "$@"
@@ -38,6 +28,7 @@ case "\${1:-}:\${2:-}" in
   image:inspect)
     case "$*" in
       *io.repo-assessment-kit.provider*) printf '%s\\n' "\${RAK_FAKE_PROVIDER_LABEL:-codex}" ;;
+      *io.repo-assessment-kit.component*) printf '%s\\n' acquisition ;;
       *) printf '%s\\n' 'sha256:${"7".repeat(64)}' ;;
     esac
     exit 0
@@ -68,11 +59,9 @@ exit 1
   const dockerCalls = readFileSync(dockerLog, "utf8");
   assert.match(dockerCalls, /--network none/u);
   assert.match(dockerCalls, /rak-engagement-smoke-codex-home-v1:\/home\/node/u);
-  assert.match(
-    dockerCalls,
-    new RegExp(`registry\\.invalid/rak-codex@sha256:${"1".repeat(64)}`, "u"),
-  );
-  assert.doesNotMatch(dockerCalls, /rak-codex:0\.1\.0/u);
+  assert.match(dockerCalls, new RegExp(`run .* sha256:${"7".repeat(64)} status`, "u"));
+  assert.match(dockerCalls, /image inspect --format \{\{\.Id\}\} rak-codex:0\.1\.0/u);
+  assert.doesNotMatch(dockerCalls, /registry\.invalid|verify-release-assets/u);
   assert.doesNotMatch(dockerCalls, /docker\.sock|--privileged|--cap-add|--volume \//u);
 
   const relabeled = spawnSync(path.join(root, "start-codex.sh"), ["status"], {
@@ -150,11 +139,9 @@ exit 1
   );
   assert.equal(acquisition.status, 0, acquisition.stderr);
   const acquisitionCalls = readFileSync(dockerLog, "utf8");
-  assert.match(
-    acquisitionCalls,
-    new RegExp(`registry\\.invalid/rak-acquisition@sha256:${"3".repeat(64)}`, "u"),
-  );
-  assert.doesNotMatch(acquisitionCalls, /rak-acquisition:0\.1\.0/u);
+  assert.match(acquisitionCalls, new RegExp(`create .* sha256:${"7".repeat(64)} ssh main`, "u"));
+  assert.match(acquisitionCalls, /image inspect --format \{\{\.Id\}\} rak-acquisition:0\.1\.0/u);
+  assert.doesNotMatch(acquisitionCalls, /registry\.invalid|verify-release-assets/u);
   assert.match(acquisitionCalls, /--network rak-git-egress/u);
   assert.match(acquisitionCalls, /:\/run\/secrets\/key:ro/u);
   assert.match(acquisitionCalls, /:\/run\/secrets\/known_hosts:ro/u);

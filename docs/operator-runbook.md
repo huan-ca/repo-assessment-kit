@@ -23,15 +23,11 @@ WSL is not a guaranteed platform. Record its Windows build, WSL version, distrib
 virtualization mode, and any Docker/Lima limitation as release evidence. An emulated run does not
 replace a missing native macOS or Linux release check.
 
-Use only an authentic `rak-verified-release/1.0.0` bundle. The launcher verifies its signed release
-manifest and the bound toolchain, software bill of materials (SBOM), provenance inventory, and
-immutable image references before use. A source checkout, mutable image tag, locally supplied
-digest, or environment override is not a verified release. This repository does not contain a
-release-signing private key and must never create a substitute signature.
-
-If verification fails, obtain the authentic release bundle and its published verification material
-from the release owner. Do not override the digest, edit the manifest, trust a locally built tag, or
-weaken preflight.
+The client path builds all four assessment containers from this repository on first use. Run
+`./start.sh`; after Docker is ready, accept the local build prompt. To build explicitly, run
+`./start.sh --provider claude build-images`. The build records the exact local image IDs and a
+source fingerprint in `generated/local-images.json`. GHCR, a protected GitHub environment, and a
+release-signing key are not used.
 
 Dynamic target execution requires the release-provisioned Lima plain-mode worker, native guest
 architecture, rootless Docker, cgroup version 2, firewall/request guard, resource limits, and
@@ -62,11 +58,11 @@ assuming ignored output cannot be staged by an unsafe command.
 
 ### 1.1 Production helper installation and service boundary
 
-The production boundary is a privileged service installed by a trusted host administrator. It is not
-bootstrapped by a public launcher and is never run by the assessment operator. Before using a
-candidate, the administrator must choose one dedicated, nonzero numeric client UID and GID and bind
-them into the signed `rak-host-helper-config/1.0.0`. The public launcher and release orchestrator
-run as that dedicated account, never as root.
+The advanced dynamic-runtime boundary is a privileged service installed by a trusted host
+administrator. It is optional for static assessment, is not bootstrapped by the public launcher, and
+is never run by the assessment operator. Before using it, the administrator must choose one
+dedicated, nonzero numeric client UID and GID and bind them into `rak-host-helper-config/1.0.0`. The
+public launcher and release orchestrator run as that dedicated account, never as root.
 
 The installation has these fixed paths and ownership rules:
 
@@ -135,7 +131,7 @@ identity, paths, arguments, umask, and `RunAtLoad=false`, but launchd does not p
 parity for every Linux systemd sandbox directive. Treat macOS sandbox/hardening parity as an
 unverified native-platform gate, not as a deterministic installer pass.
 
-Final full CI passes 177/177 Vitest checks, 131/131 release seams, fixtures, shell syntax, build,
+Final full CI passes 177/177 Vitest checks, 129/129 release seams, fixtures, shell syntax, build,
 foundation smoke, security smoke, and a production audit with no known vulnerabilities. The CI
 environment has no native C compiler, so it did not compile or execute the four platform-specific
 `rak-peer-cred` payloads. A release operator must retain the NO-GO until real Linux ARM64/x86-64 and

@@ -45,3 +45,14 @@ services:
     image: rak-browser:0.1.0
     shm_size: 256m
     command: [probe]
+
+  acquisition:
+    <<: *rak-common
+    profiles: [acquisition]
+    build:
+      context: ..
+      dockerfile: container/Dockerfile.acquisition
+    image: rak-acquisition:0.1.0
+    volumes:
+      - /out
+    command: [--help]
