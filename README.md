@@ -96,6 +96,11 @@ The most common causes are an incomplete customer release, an unavailable Docker
 missing assessment helper. These are deployment tasks for the technical operator—not tasks the
 client is expected to solve.
 
+On macOS, if Docker is installed but does not meet the rootless safety check, `./start.sh` offers a
+guided repair. It explains each change and asks before installing Lima, creating the separate
+rootless Docker virtual machine, or adding a Docker connection. After Docker is verified, the
+readiness check runs again and moves to the next required item.
+
 ## Sign in to the selected provider
 
 Only continue after the readiness check says the required mode is available.

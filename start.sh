@@ -23,8 +23,14 @@ if [[ ${1:-} == --provider ]]; then
 fi
 
 case "$provider" in
-  codex) launcher="$repo_root/start-codex.sh" ;;
-  claude|claude-code) launcher="$repo_root/start-cc.sh" ;;
+  codex)
+    provider_name=codex
+    launcher="$repo_root/start-codex.sh"
+    ;;
+  claude|claude-code)
+    provider_name=claude
+    launcher="$repo_root/start-cc.sh"
+    ;;
   "")
     if [[ -t 0 ]]; then
       printf '%s\n' \
@@ -33,8 +39,14 @@ case "$provider" in
         "  2) Codex"
       read -r -p "Choose 1 or 2: " selection
       case "$selection" in
-        1) launcher="$repo_root/start-cc.sh" ;;
-        2) launcher="$repo_root/start-codex.sh" ;;
+        1)
+          provider_name=claude
+          launcher="$repo_root/start-cc.sh"
+          ;;
+        2)
+          provider_name=codex
+          launcher="$repo_root/start-codex.sh"
+          ;;
         *) printf '%s\n' "Please run start.sh again and choose 1 or 2." >&2; exit "$EX_USAGE" ;;
       esac
     else
@@ -86,6 +98,28 @@ NODE
     then
       printf '%s\n' "The readiness result could not be read." >&2
       exit 65
+    fi
+    rootless_blocked=$(
+      node -e '
+        const fs = require("node:fs");
+        const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+        process.stdout.write(
+          value.blockers?.some((item) => item.code === "docker_not_rootless") ? "yes" : "no",
+        );
+      ' "$report"
+    )
+    if [[ "$rootless_blocked" == yes && -t 0 ]]; then
+      printf '\nWould you like guided help fixing the Docker safety check?\n'
+      if read -r -p "Start guided Docker setup? [y/N]: " setup_answer &&
+        [[ "$setup_answer" == y || "$setup_answer" == Y || "$setup_answer" == yes || "$setup_answer" == YES ]]
+      then
+        if "$repo_root/scripts/guided-rootless-docker.sh"; then
+          rm -f -- "$report"
+          trap - EXIT HUP INT TERM
+          exec "$repo_root/start.sh" --provider "$provider_name" preflight
+        fi
+        printf '%s\n' "Docker setup did not complete. The assessment remains safely blocked." >&2
+      fi
     fi
     final_report="$repo_root/generated/preflight-latest.json"
     mv -f -- "$report" "$final_report"

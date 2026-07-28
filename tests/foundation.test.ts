@@ -33,12 +33,20 @@ describe("provider launcher policy", () => {
     const launcher = await readFile(path.join(root, "start.sh"), "utf8");
     expect(launcher).toContain("Recommended mode:");
     expect(launcher).toContain("generated/preflight-latest.json");
+    expect(launcher).toContain("guided-rootless-docker.sh");
     expect(launcher).toContain('launcher="$repo_root/start-cc.sh"');
     expect(launcher).toContain('launcher="$repo_root/start-codex.sh"');
 
     const result = run("start.sh", [], { RAK_PROVIDER: "unsupported" });
     expect(result.status).toBe(64);
     expect(result.stderr).toContain("Provider must be codex or claude.");
+
+    const guided = await readFile(path.join(root, "scripts/guided-rootless-docker.sh"), "utf8");
+    expect(guided).toContain("brew install lima");
+    expect(guided).toContain("template:docker");
+    expect(guided).toContain("name=rootless");
+    expect(guided).toContain("docker context use");
+    expect(guided).not.toMatch(/docker-rootful|--privileged|sudo /u);
   });
 
   it.each([
