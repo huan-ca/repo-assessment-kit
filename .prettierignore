@@ -1,0 +1,13 @@
+.agent-build/
+pnpm-lock.yaml
+generated/
+state/
+workspaces/
+node_modules/
+dist/
+dist-types/
+coverage/
+packages/analyzers/assets/schemas/sarif-2.1.0-errata01/
+packages/analyzers/assets/schemas/cyclonedx-1.7/
+packages/analyzers/assets/licenses/
+release/licenses/

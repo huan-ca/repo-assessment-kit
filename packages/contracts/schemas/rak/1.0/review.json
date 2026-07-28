@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/review.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "reviewId",
+    "runId",
+    "kind",
+    "reviewerAgentId",
+    "inputDigest",
+    "verdict",
+    "itemResults",
+    "acceptedCorrectionIds",
+    "limitationIds",
+    "reviewEvidenceId",
+    "completedAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "reviewId": { "type": "string" },
+    "runId": { "type": "string" },
+    "kind": {
+      "enum": ["independent-security", "independent-decision", "technical-human", "lay-human"]
+    },
+    "reviewerAgentId": { "type": "string" },
+    "inputDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "verdict": { "enum": ["passed", "passed-with-objections", "failed"] },
+    "itemResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["itemId", "outcome", "evidenceOccurrenceIds"],
+        "properties": {
+          "itemId": { "type": "string" },
+          "outcome": {
+            "enum": [
+              "corroborated",
+              "independently reproduced",
+              "disputed",
+              "invalidated",
+              "not assessed"
+            ]
+          },
+          "objection": { "type": "string" },
+          "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "acceptedCorrectionIds": { "type": "array", "items": { "type": "string" } },
+    "limitationIds": { "type": "array", "items": { "type": "string" } },
+    "reviewEvidenceId": { "type": "string" },
+    "completedAt": { "type": "string", "format": "date-time" }
+  }
+}

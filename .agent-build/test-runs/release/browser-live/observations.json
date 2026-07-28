@@ -1,0 +1,114 @@
+{
+  "consoleErrors": [],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:4173/api/v1/session/bootstrap",
+      "reason": "net::ERR_ABORTED"
+    }
+  ],
+  "responses": [
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:4173/api/v1/session/bootstrap",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:4173/api/v1/system",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:4173/api/v1/source-handles",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:4173/api/v1/runs?limit=1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:4173/api/v1/runs",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:4173/api/v1/runs/run_019fa687-42ab-7db9-818e-76fb3c4f28e5/events",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "http://127.0.0.1:4173/api/v1/runs/run_019fa687-42ab-7db9-818e-76fb3c4f28e5/discovery",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "http://127.0.0.1:4173/api/v1/runs/run_019fa687-42ab-7db9-818e-76fb3c4f28e5/approvals",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:4173/api/v1/runs/run_019fa687-42ab-7db9-818e-76fb3c4f28e5/actions/resolve-target",
+      "status": 202
+    }
+  ],
+  "checks": {
+    "bootstrap": {
+      "url": "http://127.0.0.1:4173/",
+      "cookies": [
+        {
+          "name": "rak_session",
+          "httpOnly": true,
+          "sameSite": "Strict",
+          "secure": false
+        }
+      ],
+      "localStorage": {},
+      "sessionStorage": {}
+    },
+    "readiness": "Before source access\n\nSystem readiness\n\nRunning with Codex on linux arm64. These checks do not assess a repository.\n\nCodex sign-in is needed\n\nThe launcher did not confirm provider authentication.\n\nClose this page, run start-codex.sh login, then start the kit again. Provider homes remain separate by engagement.\n\nPrerequisites",
+    "help": "Read the fieldbook\n\nHelp and glossary\n\nPlain-language definitions and honest off-path states for the local interface.\n\nLocal interface boundary\n\nThis UI is published only on 127.0.0.1. The current data source is the local API.\n\nGlossary\nAssessment\nA bounded technical and product review. It is not a legal audit or penetration test.\nSafe copy\nAn immutable source snapshot used so assessment work does not modify the registered repository.\nSupporting record\nA captured evidence occurrence with its own source, time, validation, sensitivity, and limitations.\nSource and confidence\nWhere a product claim came from and how strongly it is supported. The canonical term is provenance.\nFile fingerprint\nA SHA-256 digest used to detect changes. It does not prove authorship.\nBounded isolation\nLayered controls that reduce hostile runtime risk. It is not a guarantee against every escape.\nTechnical coverage\nChecks against a named profile. It does not establish compliance or absence of vulnerabilities.\nKeyboard help\nUse Tab and Shift+Tab to move through controls.\nUse Space for checkboxes and radio rows.\nUse Enter or Space for buttons and disclosures.\nThe route heading receives focus after navigation.\nUniversal route states\nLoading\nError\nDenied\nDisconnected\nReplay expired\nShow technical details",
+    "empty": "Local records\n\nAssessments\n\nNo assessment has been created in this local workspace.\n\nStart assessment\nNo assessments yet\n\nSystem readiness and registered source handles are available. Create a setup draft to begin; no sample run is shown as live data.",
+    "invalidSetup": "Check the setup\n\nEnter a lowercase project slug and engagement ID.",
+    "secret": {
+      "passwordType": "password",
+      "localStorage": "{}",
+      "sessionStorage": "{}"
+    },
+    "prepare": "Project\nbrowser-live\nRevision\n1\nProvider\nCodex\nState\nSetup in progress\n\nSetup in progress\n\nAssessment overview\n\nStatic evidence remains useful even when live checks cannot run safely.\n\nBrowser and live-runtime checks could not run safely\n\nStatic assessment continues. This lowers confidence in login, session, and deployed behavior.\n\nCurrent phase\nNo phase running\nSee phase ledger\nLimitations\n0\nVisible in coverage; not hidden by completion\nSnapshot\nNot prepared\nThe interface does not label the snapshot ID as a commit SHA\n\nDurable workflow\n\nAssessment phases\n\nNo percent-complete estimate is inferred.\n\nThis browser session\n\nLive activity\nConnected\n\nThis is a bounded activity list, not durable event history.\n\n02:21 AM UTC\nDraft assessment created\n02:21 AM UTC\nputDiscovery accepted\n02:21 AM UTC\nputApprovals accepted\n02:21 AM UTC\nresolveTarget accepted\n02:21 AM UTC\nLimitation recorded: lim_target-resolution-failed\nPause safely\nStop and clean up\n\nResume is unavailable here because the read contract does not expose a recovery plan ID or retry attempt IDs. Cancel does not delete admitted records.",
+    "viewport320": {
+      "clientWidth": 320,
+      "scrollWidth": 320
+    },
+    "viewport390": {
+      "clientWidth": 390,
+      "scrollWidth": 390
+    },
+    "viewport768": {
+      "clientWidth": 768,
+      "scrollWidth": 768
+    },
+    "viewport1280": {
+      "clientWidth": 1280,
+      "scrollWidth": 1280
+    },
+    "zoom200": {
+      "clientWidth": 1280,
+      "scrollWidth": 1290
+    },
+    "focus": {
+      "tag": "BUTTON",
+      "text": " Pause safely",
+      "outline": "rgb(0, 95, 204) solid 3px",
+      "main": 1,
+      "nav": 1,
+      "live": 0,
+      "h1": 1
+    },
+    "health": {
+      "status": 200,
+      "body": "{\"status\":\"ok\"}"
+    }
+  }
+}

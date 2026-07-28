@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/finding.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "findingId",
+    "runId",
+    "fingerprint",
+    "revision",
+    "title",
+    "description",
+    "category",
+    "technicalSeverity",
+    "businessPriority",
+    "confidence",
+    "validationState",
+    "evidenceOccurrenceIds",
+    "locations",
+    "cweMappings",
+    "cvss"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "findingId": { "type": "string" },
+    "runId": { "type": "string" },
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "value"],
+      "properties": { "algorithm": { "const": "rak-finding/v1" }, "value": { "type": "string" } }
+    },
+    "revision": { "type": "integer", "minimum": 1 },
+    "supersedesFindingId": { "type": "string" },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "category": { "type": "string" },
+    "technicalSeverity": { "enum": ["critical", "high", "medium", "low", "informational"] },
+    "businessPriority": { "enum": ["urgent", "high", "medium", "low", "unassigned"] },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "validationState": {
+      "enum": ["unreviewed", "corroborated", "independently reproduced", "disputed", "invalidated"]
+    },
+    "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } },
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["repoRelPath"],
+        "properties": {
+          "repoRelPath": { "type": "string" },
+          "startLine": { "type": "integer", "minimum": 1 },
+          "endLine": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "cweMappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cweId", "catalogVersion", "primary", "method", "confidence"],
+        "properties": {
+          "cweId": { "type": "string" },
+          "catalogVersion": { "const": "4.20" },
+          "primary": { "type": "boolean" },
+          "method": { "enum": ["tool", "analyst", "imported"] },
+          "confidence": { "enum": ["high", "medium", "low"] }
+        }
+      }
+    },
+    "cvss": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "system",
+          "version",
+          "vector",
+          "score",
+          "band",
+          "scorer",
+          "scoredAt",
+          "evidenceOccurrenceIds",
+          "imported"
+        ],
+        "properties": {
+          "system": { "const": "CVSS" },
+          "version": { "type": "string" },
+          "vector": { "type": "string" },
+          "score": { "type": "string" },
+          "band": { "type": "string" },
+          "scorer": { "type": "string" },
+          "scoredAt": { "type": "string", "format": "date-time" },
+          "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } },
+          "imported": { "type": "boolean" }
+        }
+      }
+    },
+    "remediationTheme": { "type": "string" }
+  }
+}

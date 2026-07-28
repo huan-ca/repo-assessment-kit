@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/domain-coverage.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "coverageId",
+    "runId",
+    "domainId",
+    "status",
+    "plannedControls",
+    "reconciledControls",
+    "counts",
+    "exclusions",
+    "unsupportedEcosystems",
+    "limitationIds",
+    "evidenceOccurrenceIds"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "coverageId": { "type": "string" },
+    "runId": { "type": "string" },
+    "domainId": { "type": "string" },
+    "status": { "enum": ["pass", "fail", "partial", "blocked", "not applicable", "not tested"] },
+    "plannedControls": { "type": "integer", "minimum": 0 },
+    "reconciledControls": { "type": "integer", "minimum": 0 },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pass", "fail", "partial", "blocked", "not applicable", "not tested"],
+      "properties": {
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 },
+        "not applicable": { "type": "integer", "minimum": 0 },
+        "not tested": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "exclusions": { "type": "array", "items": { "type": "string" } },
+    "unsupportedEcosystems": { "type": "array", "items": { "type": "string" } },
+    "limitationIds": { "type": "array", "items": { "type": "string" } },
+    "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } }
+  }
+}

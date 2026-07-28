@@ -1,0 +1,12 @@
+.git
+.agent-build
+node_modules
+**/dist
+coverage
+generated
+state
+workspaces
+.env
+.env.*
+!.env.example
+*.log

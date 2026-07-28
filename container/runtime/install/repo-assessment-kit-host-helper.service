@@ -1,0 +1,37 @@
+[Unit]
+Description=Repository Assessment Kit trusted host helper
+After=local-fs.target
+ConditionPathIsRegular=/etc/repo-assessment-kit/host-helper.json
+ConditionPathIsRegular=/run/secrets/rak-host-helper-client.key
+
+[Service]
+Type=simple
+User=root
+Group=root
+UMask=0077
+WorkingDirectory=/usr/local/libexec/repo-assessment-kit
+ExecStartPre=/usr/local/libexec/repo-assessment-kit/node /usr/local/libexec/repo-assessment-kit/validate-production-host-helper.mjs
+ExecStart=/usr/local/libexec/repo-assessment-kit/node /usr/local/libexec/repo-assessment-kit/service-entrypoint.mjs
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=90s
+TimeoutStopSec=90s
+KillMode=mixed
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectHostname=true
+ProtectClock=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+SystemCallArchitectures=native
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

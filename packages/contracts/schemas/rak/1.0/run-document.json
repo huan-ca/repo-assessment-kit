@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/run-document.json",
+  "title": "RunDocument",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "projectSlug",
+    "revision",
+    "rowVersion",
+    "state",
+    "workflowProfile",
+    "exportProfile",
+    "provider",
+    "createdAt",
+    "updatedAt",
+    "limitationIds"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "runId": {
+      "type": "string",
+      "pattern": "^run_[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "parentRunId": {
+      "type": "string",
+      "pattern": "^run_[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "projectSlug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "revision": { "type": "integer", "minimum": 1 },
+    "rowVersion": { "type": "integer", "minimum": 0 },
+    "state": {
+      "enum": [
+        "DRAFT",
+        "RESOLVING_TARGET",
+        "READY",
+        "EXECUTING",
+        "WAITING_INPUT",
+        "PAUSING",
+        "PAUSED",
+        "RECOVERABLE_FAILURE",
+        "VALIDATING",
+        "REVIEW_REQUIRED",
+        "PACKAGING",
+        "COMPLETED",
+        "CANCELLING",
+        "CANCELLED",
+        "FAILED"
+      ]
+    },
+    "workflowProfile": { "const": "rak-workflow/1.0.0" },
+    "exportProfile": { "const": "rak-export-profile/1.0.0" },
+    "provider": { "enum": ["codex", "claude-code"] },
+    "targetSnapshotId": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "terminalAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "limitationIds": { "type": "array", "items": { "type": "string" } },
+    "packageId": { "type": "string", "pattern": "^pkg_[0-9A-Za-z][0-9A-Za-z_-]*$" }
+  }
+}

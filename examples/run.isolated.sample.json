@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectSlug": "sample-customer-portal",
+  "source": {
+    "kind": "ssh",
+    "url": "ssh://git@example.invalid/sample-customer-portal.git",
+    "ref": "refs/heads/main",
+    "acquisitionProfileId": "sample-customer-portal-readonly"
+  },
+  "discoveryPath": "examples/discovery.sample.json",
+  "outputRoot": "generated",
+  "runtime": {
+    "mode": "isolated",
+    "targetOrigins": [
+      {
+        "scheme": "http",
+        "host": "app",
+        "port": 8080
+      }
+    ],
+    "selectedProfileIds": ["browser-readonly"],
+    "approvalIds": ["approval-sample-probe"],
+    "plannedControlIds": ["control-health-probe"],
+    "probeProfileId": "http-health-probe",
+    "candidateRelPaths": ["compose.yaml"],
+    "declaredArtifactIds": ["probe-summary"],
+    "artifactByteLimit": "1048576",
+    "controlPlanLifetimeSeconds": 900
+  },
+  "sandboxCredentials": [
+    {
+      "handleId": "sample-customer-portal-test-login",
+      "purpose": "probe",
+      "recipient": "app",
+      "handleEnvironment": "RAK_SANDBOX_SAMPLE_LOGIN_HANDLE",
+      "approvalDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expiresAt": "2026-07-28T19:00:00.000Z",
+      "production": false
+    }
+  ],
+  "optionalServices": []
+}

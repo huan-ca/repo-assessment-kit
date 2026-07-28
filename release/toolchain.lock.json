@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "1.0.0",
+  "profile": "rak-toolchain-lock/1.0.0",
+  "generatedFrom": {
+    "research": ".agent-build/research/assessment-toolchain.md",
+    "accessedAt": "2026-07-28"
+  },
+  "tools": [
+    {
+      "toolId": "syft",
+      "version": "1.49.0",
+      "license": {
+        "spdx": "Apache-2.0",
+        "path": "licenses/syft-Apache-2.0.txt",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/anchore/syft/releases/download/v1.49.0/syft_1.49.0_linux_amd64.tar.gz",
+          "sha256": "7aa2f03ee92739cf643279ba3990548b9925d4e22cae13f46831ee62821147fe",
+          "stagedPath": null,
+          "sbom": {
+            "source": "https://github.com/anchore/syft/releases/download/v1.49.0/syft_1.49.0_linux_amd64.sbom",
+            "sha256": "31ec32a52ddd210273ff315f0f034b66e10a67130adb95155e8e626ab35cf709",
+            "stagedPath": null
+          }
+        },
+        "linux/arm64": {
+          "source": "https://github.com/anchore/syft/releases/download/v1.49.0/syft_1.49.0_linux_arm64.tar.gz",
+          "sha256": "c7c32de183c32368de197edba75e8dba7632915f7761bacd55149a9ca7fe0fa4",
+          "stagedPath": null,
+          "sbom": {
+            "source": "https://github.com/anchore/syft/releases/download/v1.49.0/syft_1.49.0_linux_arm64.sbom",
+            "sha256": "ad18d6bf4f02263d175387d7d6cf36ec14aeb8e6ef2becfaa15857bc621cfa5e",
+            "stagedPath": null
+          }
+        }
+      },
+      "provenance": {
+        "kind": "upstream-checksums-and-signature",
+        "source": "https://github.com/anchore/syft/releases/download/v1.49.0/syft_1.49.0_checksums.txt",
+        "sha256": "1870142953acd02a9de2f5ff019087cee4a6dc03e4a7c15b67de7b1dc48e0865",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "osv-scanner",
+      "version": "2.4.0",
+      "license": {
+        "spdx": "Apache-2.0",
+        "path": "licenses/osv-scanner-Apache-2.0.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_amd64",
+          "sha256": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0",
+          "stagedPath": null,
+          "sbom": null
+        },
+        "linux/arm64": {
+          "source": "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_arm64",
+          "sha256": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9",
+          "stagedPath": null,
+          "sbom": null
+        }
+      },
+      "provenance": {
+        "kind": "slsa-in-toto",
+        "source": "https://github.com/google/osv-scanner/releases/download/v2.4.0/multiple.intoto.jsonl",
+        "sha256": "9ef16324e97bec3b915e93acfa9ad38673333452bb28299ab7317a3c14847d0b",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "gitleaks",
+      "version": "8.30.1",
+      "license": {
+        "spdx": "MIT",
+        "path": "licenses/Gitleaks-MIT.txt",
+        "sha256": "e3884b252b3bfc045e55be43a34d1e80da070bc6f804ac95bf4660e97d62ebc6"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz",
+          "sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+          "stagedPath": null,
+          "sbom": null
+        },
+        "linux/arm64": {
+          "source": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_arm64.tar.gz",
+          "sha256": "e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080",
+          "stagedPath": null,
+          "sbom": null
+        }
+      },
+      "provenance": {
+        "kind": "upstream-checksums",
+        "source": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_checksums.txt",
+        "sha256": "061476c21adaf5441516f96f185c1a4706a83cd6329b9b38762271b3d4a52fae",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "trivy",
+      "version": "0.72.0",
+      "license": {
+        "spdx": "Apache-2.0",
+        "path": "licenses/Trivy-Apache-2.0.txt",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/aquasecurity/trivy/releases/download/v0.72.0/trivy_0.72.0_Linux-64bit.tar.gz",
+          "sha256": "bbb64b9695866ce4a7a8f5c9592002c5961cab378577fa3f8a040df362b9b2ea",
+          "stagedPath": null,
+          "sbom": {
+            "source": "https://github.com/aquasecurity/trivy/releases/download/v0.72.0/bom.json",
+            "sha256": "2e10c7423c87db3f195f9dd25c01231625894781731bebfc5a0c7725baf797d5",
+            "stagedPath": null
+          }
+        },
+        "linux/arm64": {
+          "source": "https://github.com/aquasecurity/trivy/releases/download/v0.72.0/trivy_0.72.0_Linux-ARM64.tar.gz",
+          "sha256": "2ca2c023109c2db6b2b77366b6717291452d4531167377d95c79547f0c8e3467",
+          "stagedPath": null,
+          "sbom": {
+            "source": "https://github.com/aquasecurity/trivy/releases/download/v0.72.0/bom.json",
+            "sha256": "2e10c7423c87db3f195f9dd25c01231625894781731bebfc5a0c7725baf797d5",
+            "stagedPath": null
+          }
+        }
+      },
+      "provenance": {
+        "kind": "sigstore-bundle",
+        "source": "https://github.com/aquasecurity/trivy/releases/download/v0.72.0/trivy_0.72.0_checksums.txt.sigstore.json",
+        "sha256": "5b500aec4ca62dd78f581f05f722c5027af4468efe07566122bd3cadda79c72f",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "scc",
+      "version": "3.7.0",
+      "license": {
+        "spdx": "MIT",
+        "path": "licenses/scc-MIT.txt",
+        "sha256": "394715fd981d15253bdc4677286abfce01da356040381a0d9de7701bd7c8069c"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/boyter/scc/releases/download/v3.7.0/scc_Linux_x86_64.tar.gz",
+          "sha256": "3d9d65b00ca874c2b29151abe7e1480736f5229edc3ce8e4b2791460cdfabf5a",
+          "stagedPath": null,
+          "sbom": null
+        },
+        "linux/arm64": {
+          "source": "https://github.com/boyter/scc/releases/download/v3.7.0/scc_Linux_arm64.tar.gz",
+          "sha256": "dcb05c6e993bb2d8d2da4765ff018f2e752325dd205a41698929c55e4123575d",
+          "stagedPath": null,
+          "sbom": null
+        }
+      },
+      "provenance": {
+        "kind": "upstream-checksums",
+        "source": "https://github.com/boyter/scc/releases/download/v3.7.0/checksums.txt",
+        "sha256": "ac3fc68d727afe500a216308389540f0c77e3ab3c5ed4b36273917eb57e9ce7d",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "opengrep",
+      "version": "1.26.0",
+      "license": {
+        "spdx": "LGPL-2.1-only",
+        "path": "licenses/Opengrep-LGPL-2.1.txt",
+        "sha256": "20c17d8b8c48a600800dfd14f95d5cb9ff47066a9641ddeab48dc54aec96e331"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/opengrep/opengrep/releases/download/v1.26.0/opengrep_manylinux_x86",
+          "sha256": "40c21299eeddabf743b856daa843d24f9d4a027130671cd45b3b21776fd9ab26",
+          "stagedPath": null,
+          "sbom": null
+        },
+        "linux/arm64": {
+          "source": "https://github.com/opengrep/opengrep/releases/download/v1.26.0/opengrep_manylinux_aarch64",
+          "sha256": "3042a3b1aa98fa93407b9d66a45ab1f179b5b367e76965f56afdbd2c038fb1fa",
+          "stagedPath": null,
+          "sbom": null
+        }
+      },
+      "provenance": {
+        "kind": "sigstore-certificates-per-asset",
+        "source": "https://github.com/opengrep/opengrep/releases/tag/v1.26.0",
+        "sha256": null,
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "pmd-cpd",
+      "version": "7.26.0",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "path": "licenses/PMD-BSD-style.txt",
+        "sha256": "296dae48eae5658f449a89cf512b8e05386c9c5adfb23d74cfb24efa145625db"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/pmd/pmd/releases/download/pmd_releases/7.26.0/pmd-dist-7.26.0-bin.zip",
+          "sha256": "9f55cb7ff0e9f9a66dd2f005eaa370e84c8a4cd971b134aa14a930c4a283ebc9",
+          "stagedPath": null,
+          "sbom": {
+            "source": "https://github.com/pmd/pmd/releases/download/pmd_releases/7.26.0/pmd-7.26.0-cyclonedx.json",
+            "sha256": "33c9b9ca401c62bee6efff5ad074f1281c8f5909530b135c4643d0e4454778fd",
+            "stagedPath": null
+          }
+        },
+        "linux/arm64": {
+          "source": "https://github.com/pmd/pmd/releases/download/pmd_releases/7.26.0/pmd-dist-7.26.0-bin.zip",
+          "sha256": "9f55cb7ff0e9f9a66dd2f005eaa370e84c8a4cd971b134aa14a930c4a283ebc9",
+          "stagedPath": null,
+          "sbom": {
+            "source": "https://github.com/pmd/pmd/releases/download/pmd_releases/7.26.0/pmd-7.26.0-cyclonedx.json",
+            "sha256": "33c9b9ca401c62bee6efff5ad074f1281c8f5909530b135c4643d0e4454778fd",
+            "stagedPath": null
+          }
+        }
+      },
+      "provenance": {
+        "kind": "detached-openpgp-signature",
+        "source": "https://github.com/pmd/pmd/releases/download/pmd_releases/7.26.0/pmd-dist-7.26.0-bin.zip.asc",
+        "sha256": "3d738a2ae5d8c54b016c6fa086858a069e713657e605709b0a36774bd1202702",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    },
+    {
+      "toolId": "age",
+      "version": "1.3.1",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "path": "licenses/age-BSD-3-Clause.txt",
+        "sha256": "c5d65279d02955c0fc2294ae417c3add650d228f4f5c82bd6d531fc26c89cd96"
+      },
+      "platforms": {
+        "linux/amd64": {
+          "source": "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-amd64.tar.gz",
+          "sha256": "bdc69c09cbdd6cf8b1f333d372a1f58247b3a33146406333e30c0f26e8f51377",
+          "executableSha256": "2e305637f2a0555305e21c17fb74446acbb39b53135d43d4b744e50c287133a5",
+          "executableStagedPath": null,
+          "stagedPath": null,
+          "sbom": null
+        },
+        "linux/arm64": {
+          "source": "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-arm64.tar.gz",
+          "sha256": "c6878a324421b69e3e20b00ba17c04bc5c6dab0030cfe55bf8f68fa8d9e9093a",
+          "executableSha256": "92da3edf27811a65a599342d743a13bb50b7f0b07f8947530d4e83249f2e4532",
+          "executableStagedPath": null,
+          "stagedPath": null,
+          "sbom": null
+        }
+      },
+      "provenance": {
+        "kind": "sumdb-release-proof",
+        "source": "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-arm64.tar.gz.proof",
+        "sha256": "a3ab812404ff1848a7c950a882d899b676e8501c078ff6277e2771368b764e97",
+        "stagedPath": null
+      },
+      "vulnerabilityScan": null
+    }
+  ],
+  "images": {
+    "codex": null,
+    "claude": null,
+    "acquisition": null
+  },
+  "releaseReadiness": {
+    "status": "unavailable",
+    "blockingReasons": [
+      "Pinned tool archives and upstream provenance are not staged for offline digest verification.",
+      "Every tool requires a staged SBOM and a current vulnerability-scan report; several upstream releases do not publish an SBOM.",
+      "Scanner images for linux/amd64 and linux/arm64 have not been built, signed, SBOMed, provenance-attested, vulnerability-scanned, and registered.",
+      "Codex, Claude, and acquisition image digest/evidence records are absent.",
+      "A release signing public key and valid Ed25519 release signature have not been provisioned."
+    ]
+  }
+}

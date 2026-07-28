@@ -1,0 +1,28 @@
+name: Native runtime release gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: [self-hosted, linux, x64, rak-runtime]
+          - runner: [self-hosted, linux, arm64, rak-runtime]
+          - runner: [self-hosted, macos, x64, rak-runtime]
+          - runner: [self-hosted, macos, arm64, rak-runtime]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require available native isolated runtime
+        run: ./scripts/runtime-capability.sh --require-available
+      - name: Run containment and adversarial gates
+        run: ./scripts/native-isolation-gates.sh
+      - run: ./start-codex.sh status
+      - run: ./start-cc.sh status

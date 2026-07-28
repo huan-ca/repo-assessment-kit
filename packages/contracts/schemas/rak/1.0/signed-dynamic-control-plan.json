@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/signed-dynamic-control-plan.json",
+  "title": "SignedDynamicControlPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["payload", "payloadDigest", "signatureAlgorithm", "signingKeyId", "signature"],
+  "properties": {
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "controlPlanId",
+        "runId",
+        "runtimeId",
+        "runtimeCreationNonce",
+        "attemptId",
+        "fenceToken",
+        "snapshotId",
+        "compiledPlanId",
+        "compiledPlanDigest",
+        "selectedProfileIds",
+        "approvalIds",
+        "authorityDigest",
+        "internalOrigins",
+        "controls",
+        "probeProfileId",
+        "issuedAt",
+        "expiresAt",
+        "nonce"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "controlPlanId": { "type": "string", "minLength": 1 },
+        "runId": { "type": "string", "pattern": "^run_" },
+        "runtimeId": { "type": "string", "minLength": 1 },
+        "runtimeCreationNonce": { "type": "string", "minLength": 1 },
+        "attemptId": { "type": "string", "minLength": 1 },
+        "fenceToken": { "type": "string", "pattern": "^[0-9]+$" },
+        "snapshotId": { "type": "string", "minLength": 1 },
+        "compiledPlanId": { "type": "string", "minLength": 1 },
+        "compiledPlanDigest": { "$ref": "#/$defs/digest" },
+        "selectedProfileIds": { "type": "array", "items": { "type": "string" } },
+        "approvalIds": { "type": "array", "items": { "type": "string" } },
+        "authorityDigest": { "$ref": "#/$defs/digest" },
+        "internalOrigins": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/origin" }
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "plannedControlId",
+              "safetyClass",
+              "internalOrigin",
+              "method",
+              "routeTemplate",
+              "fixtureIds",
+              "expectedSideEffects",
+              "budgets",
+              "permittedOutputClass",
+              "abortTriggers",
+              "cleanupAssertion",
+              "coverageOnDenyOrInterruption"
+            ],
+            "properties": {
+              "plannedControlId": { "type": "string", "minLength": 1 },
+              "safetyClass": {
+                "enum": [
+                  "P0-passive",
+                  "P1-anonymous-read",
+                  "P2-authenticated-read",
+                  "P3-session-bootstrap"
+                ]
+              },
+              "internalOrigin": { "$ref": "#/$defs/origin" },
+              "method": { "enum": ["GET", "HEAD", "OPTIONS", "POST"] },
+              "routeTemplate": {
+                "type": "string",
+                "pattern": "^/(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))(?!.*\\\\)(?!.*[?#\\u0000-\\u001f\\u007f]).*$"
+              },
+              "principalPseudonym": { "type": "string" },
+              "rolePseudonym": { "type": "string" },
+              "tenantPseudonym": { "type": "string" },
+              "secretPurpose": { "enum": ["target-service", "probe"] },
+              "secretRecipient": { "type": "string" },
+              "fixtureIds": { "type": "array", "items": { "type": "string" } },
+              "expectedSideEffects": {
+                "type": "array",
+                "items": { "enum": ["session-creation", "session-revocation"] }
+              },
+              "budgets": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["requests", "bytes", "requestsPerSecond", "wallSeconds", "redirects"],
+                "properties": {
+                  "requests": { "type": "integer", "minimum": 1, "maximum": 500 },
+                  "bytes": { "type": "string", "pattern": "^[0-9]+$" },
+                  "requestsPerSecond": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 },
+                  "wallSeconds": { "type": "integer", "minimum": 1, "maximum": 1800 },
+                  "redirects": { "type": "integer", "minimum": 0, "maximum": 5 }
+                }
+              },
+              "permittedOutputClass": { "enum": ["O0", "O2", "O3"] },
+              "abortTriggers": { "type": "array", "items": { "type": "string" } },
+              "cleanupAssertion": { "type": "string", "minLength": 1 },
+              "coverageOnDenyOrInterruption": { "enum": ["blocked", "not tested", "partial"] }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "safetyClass": {
+                      "enum": ["P0-passive", "P1-anonymous-read", "P2-authenticated-read"]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "method": { "enum": ["GET", "HEAD", "OPTIONS"] },
+                    "expectedSideEffects": { "type": "array", "maxItems": 0 }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": { "safetyClass": { "const": "P3-session-bootstrap" } }
+                },
+                "then": { "properties": { "method": { "const": "POST" } } }
+              }
+            ]
+          }
+        },
+        "probeProfileId": { "type": "string", "minLength": 1 },
+        "issuedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "nonce": { "type": "string", "minLength": 1 }
+      }
+    },
+    "payloadDigest": { "$ref": "#/$defs/digest" },
+    "signatureAlgorithm": { "const": "Ed25519" },
+    "signingKeyId": { "type": "string", "minLength": 1 },
+    "signature": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheme", "host", "port"],
+      "properties": {
+        "scheme": { "enum": ["http", "https"] },
+        "host": { "type": "string", "minLength": 1 },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    }
+  }
+}

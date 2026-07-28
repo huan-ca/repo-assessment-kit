@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repo-assessment-kit.invalid/schemas/provider-task-envelope/1.0.0",
+  "title": "Broker-admitted provider task envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "provider", "capsule", "requestedCapabilities"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "provider": { "enum": ["codex", "claude-code"] },
+    "capsule": { "$ref": "#/$defs/agentTaskCapsule" },
+    "requestedCapabilities": { "$ref": "#/$defs/requestedCapabilities" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "boundedString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "uniqueStrings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/boundedString" }
+    },
+    "agentTaskCapsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "task", "runContext", "evidence", "authorityOrder"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "task": { "$ref": "#/$defs/agentTask" },
+        "runContext": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "number", "boolean", "null"]
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/safeEvidenceRecord" }
+        },
+        "authorityOrder": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "release-safety-policy" },
+            { "const": "typed-task-context" },
+            { "const": "release-task-instructions" },
+            { "const": "untrusted-evidence" },
+            { "const": "provider-proposal" }
+          ],
+          "items": false,
+          "minItems": 5,
+          "maxItems": 5
+        }
+      }
+    },
+    "agentTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "taskId",
+        "runId",
+        "attemptId",
+        "fenceToken",
+        "taskKind",
+        "providerRole",
+        "target",
+        "evidenceView",
+        "instructionBundleDigest",
+        "proposalProfileId",
+        "proposalInstructions",
+        "requiredOutputSchemaId",
+        "acceptanceChecks",
+        "allowedCommands",
+        "budget",
+        "deadlineAt"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "taskId": { "$ref": "#/$defs/boundedString" },
+        "runId": { "$ref": "#/$defs/boundedString" },
+        "attemptId": { "$ref": "#/$defs/boundedString" },
+        "fenceToken": { "$ref": "#/$defs/boundedString" },
+        "taskKind": {
+          "enum": [
+            "repository-map",
+            "product-code-trace",
+            "architecture-analysis",
+            "security-analysis",
+            "finding-review",
+            "decision-synthesis",
+            "decision-review",
+            "plain-language-review"
+          ]
+        },
+        "providerRole": {
+          "enum": ["author", "independent-reviewer"]
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["snapshotId", "commitSha", "manifestDigest"],
+          "properties": {
+            "snapshotId": { "$ref": "#/$defs/boundedString" },
+            "commitSha": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40,64}$"
+            },
+            "manifestDigest": { "$ref": "#/$defs/digest" }
+          }
+        },
+        "evidenceView": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["viewId", "digest", "allowedEvidenceIds"],
+          "properties": {
+            "viewId": { "$ref": "#/$defs/boundedString" },
+            "digest": { "$ref": "#/$defs/digest" },
+            "allowedEvidenceIds": { "$ref": "#/$defs/uniqueStrings" }
+          }
+        },
+        "instructionBundleDigest": { "$ref": "#/$defs/digest" },
+        "proposalProfileId": {
+          "enum": ["rak-author-claims-proposal/1.0.0", "rak-review-proposal/1.0.0"]
+        },
+        "proposalInstructions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "expectedAuthorProposalDigest": { "$ref": "#/$defs/digest" },
+        "requiredOutputSchemaId": {
+          "const": "rak-agent-proposal/1.0.0"
+        },
+        "acceptanceChecks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["material-claims-cited"]
+          }
+        },
+        "allowedCommands": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "contains": {
+            "enum": ["submit-proposal", "report-limitation"]
+          },
+          "items": {
+            "enum": [
+              "get-run-context",
+              "get-evidence-metadata",
+              "get-safe-evidence-text",
+              "submit-proposal",
+              "report-limitation"
+            ]
+          }
+        },
+        "budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["wallSeconds", "outputBytes"],
+          "properties": {
+            "wallSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 7200
+            },
+            "outputBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10485760
+            }
+          }
+        },
+        "deadlineAt": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "providerRole": { "const": "author" } },
+            "required": ["providerRole"]
+          },
+          "then": {
+            "properties": {
+              "taskKind": {
+                "enum": [
+                  "architecture-analysis",
+                  "product-code-trace",
+                  "security-analysis",
+                  "decision-synthesis"
+                ]
+              },
+              "proposalProfileId": { "const": "rak-author-claims-proposal/1.0.0" }
+            },
+            "not": { "required": ["expectedAuthorProposalDigest"] }
+          },
+          "else": {
+            "required": ["expectedAuthorProposalDigest"],
+            "properties": {
+              "taskKind": {
+                "enum": ["finding-review", "decision-review", "plain-language-review"]
+              },
+              "proposalProfileId": { "const": "rak-review-proposal/1.0.0" }
+            }
+          }
+        }
+      ]
+    },
+    "safeEvidenceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId",
+        "sourceLocator",
+        "mediaType",
+        "sensitivity",
+        "truncated",
+        "byteLength",
+        "escapedPayload"
+      ],
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/boundedString" },
+        "sourceLocator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "not": {
+            "anyOf": [{ "pattern": "^/" }, { "pattern": "\\.\\." }]
+          }
+        },
+        "mediaType": {
+          "enum": ["text/plain", "application/json"]
+        },
+        "sensitivity": {
+          "enum": ["public", "internal"]
+        },
+        "truncated": { "type": "boolean" },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10485760
+        },
+        "escapedPayload": { "type": "string" }
+      }
+    },
+    "requestedCapabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outputAccess", "providerInference"],
+      "properties": {
+        "permissionBypass": { "const": false },
+        "sourceAccess": { "const": false },
+        "sshAccess": { "const": false },
+        "stateAccess": { "const": false },
+        "kitAccess": { "const": false },
+        "generatedTreeAccess": { "const": false },
+        "runtimeAccess": { "const": false },
+        "helperAccess": { "const": false },
+        "arbitraryNetwork": { "const": false },
+        "outputAccess": { "const": "proposal-outbox" },
+        "providerInference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["attested", "destination"],
+          "properties": {
+            "attested": { "const": true },
+            "destination": { "enum": ["codex", "claude-code"] }
+          }
+        }
+      }
+    }
+  }
+}

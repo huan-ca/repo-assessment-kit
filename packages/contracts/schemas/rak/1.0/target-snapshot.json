@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/target-snapshot.json",
+  "title": "TargetSnapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotId",
+    "sourceKind",
+    "sanitizedLocator",
+    "gitObjectFormat",
+    "commitSha",
+    "baseCommitSha",
+    "mode",
+    "manifestBlobId",
+    "manifestDigest",
+    "archiveDigest",
+    "beforeSourceDigest",
+    "afterSourceDigest",
+    "includedDirtyPaths",
+    "excludedDirtyPaths",
+    "submodules",
+    "lfs",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "snapshotId": { "$ref": "#/$defs/digest" },
+    "sourceKind": { "enum": ["ssh-git", "local"] },
+    "sanitizedLocator": { "type": "string", "minLength": 1 },
+    "gitObjectFormat": { "enum": ["sha1", "sha256"] },
+    "commitSha": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" },
+    "baseCommitSha": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" },
+    "mode": { "enum": ["commit-only", "frozen-working-tree"] },
+    "manifestBlobId": { "type": "string", "minLength": 1 },
+    "manifestDigest": { "$ref": "#/$defs/digest" },
+    "archiveDigest": { "$ref": "#/$defs/digest" },
+    "beforeSourceDigest": { "$ref": "#/$defs/digest" },
+    "afterSourceDigest": { "$ref": "#/$defs/digest" },
+    "includedDirtyPaths": { "type": "array", "items": { "$ref": "#/$defs/path" } },
+    "excludedDirtyPaths": { "type": "array", "items": { "$ref": "#/$defs/path" } },
+    "submodules": { "enum": ["not-present", "pointers-only", "explicitly-acquired"] },
+    "lfs": { "enum": ["not-present", "pointers-only", "explicitly-acquired"] },
+    "createdAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))(?!.*\\\\)(?!.*[\\u0000-\\u001f\\u007f]).+$"
+    }
+  }
+}

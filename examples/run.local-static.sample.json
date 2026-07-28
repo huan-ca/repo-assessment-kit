@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectSlug": "sample-customer-portal",
+  "source": {
+    "kind": "local",
+    "path": "../sample-customer-portal",
+    "workingTreeMode": "frozen-working-tree"
+  },
+  "discoveryPath": "examples/discovery.sample.json",
+  "outputRoot": "generated",
+  "runtime": {
+    "mode": "static-only",
+    "targetOrigins": []
+  },
+  "sandboxCredentials": [],
+  "optionalServices": []
+}

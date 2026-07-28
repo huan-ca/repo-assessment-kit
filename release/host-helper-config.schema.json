@@ -1,0 +1,565 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rak-host-helper-config/1.0.0",
+  "title": "Repository Assessment Kit production host-helper installation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "installationId",
+    "clientUid",
+    "clientGid",
+    "peerCredentialVerifier",
+    "operations",
+    "runtime",
+    "acquisitionProfiles",
+    "sshHandles",
+    "secretRecipients",
+    "requestGuardAuthorities",
+    "requestGuardIssuer",
+    "providerReviewProfiles",
+    "humanReviewKeys",
+    "releaseAuthorizationKey",
+    "releaseCertificateKeys",
+    "releaseCertificateSubjects",
+    "unresolvedBoundaryDefects"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "rak-host-helper-config/1.0.0" },
+    "installationId": { "$ref": "#/$defs/shortId" },
+    "clientUid": { "type": "integer", "minimum": 1 },
+    "clientGid": { "type": "integer", "minimum": 1 },
+    "peerCredentialVerifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "ownerUid", "mode", "platform", "sha256"],
+      "properties": {
+        "path": { "const": "/usr/local/libexec/rak-peer-cred" },
+        "ownerUid": { "const": 0 },
+        "mode": { "const": "0755" },
+        "platform": { "enum": ["linux", "darwin"] },
+        "sha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "operations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source.acquire",
+        "source.status",
+        "source.cancel",
+        "source.finalize",
+        "source.release",
+        "analyzer.start",
+        "analyzer.status",
+        "analyzer.pause",
+        "analyzer.cancel",
+        "analyzer.finalize",
+        "vm.preflight",
+        "vm.create",
+        "vm.stageSnapshot",
+        "vm.compile",
+        "vm.acquireBuildInputs",
+        "vm.build",
+        "vm.start",
+        "vm.probe",
+        "vm.collect",
+        "vm.status",
+        "vm.heartbeat",
+        "vm.pause",
+        "vm.resume",
+        "vm.stop",
+        "vm.destroy",
+        "provider.preflight",
+        "provider.stage",
+        "provider.execute",
+        "provider.cancel",
+        "provider.cleanup",
+        "provider.status",
+        "secret.store",
+        "secret.consume",
+        "secret.revoke",
+        "request-guard.admit",
+        "request-guard.issue",
+        "request-guard.revoke",
+        "vm.emergencyStop",
+        "reconcile.list"
+      ],
+      "properties": {
+        "source.acquire": { "$ref": "#/$defs/operation" },
+        "source.status": { "$ref": "#/$defs/operation" },
+        "source.cancel": { "$ref": "#/$defs/operation" },
+        "source.finalize": { "$ref": "#/$defs/operation" },
+        "source.release": { "$ref": "#/$defs/operation" },
+        "analyzer.start": { "$ref": "#/$defs/operation" },
+        "analyzer.status": { "$ref": "#/$defs/operation" },
+        "analyzer.pause": { "$ref": "#/$defs/operation" },
+        "analyzer.cancel": { "$ref": "#/$defs/operation" },
+        "analyzer.finalize": { "$ref": "#/$defs/operation" },
+        "vm.preflight": { "$ref": "#/$defs/operation" },
+        "vm.create": { "$ref": "#/$defs/operation" },
+        "vm.stageSnapshot": { "$ref": "#/$defs/operation" },
+        "vm.compile": { "$ref": "#/$defs/operation" },
+        "vm.acquireBuildInputs": { "$ref": "#/$defs/operation" },
+        "vm.build": { "$ref": "#/$defs/operation" },
+        "vm.start": { "$ref": "#/$defs/operation" },
+        "vm.probe": { "$ref": "#/$defs/operation" },
+        "vm.collect": { "$ref": "#/$defs/operation" },
+        "vm.status": { "$ref": "#/$defs/operation" },
+        "vm.heartbeat": { "$ref": "#/$defs/operation" },
+        "vm.pause": { "$ref": "#/$defs/operation" },
+        "vm.resume": { "$ref": "#/$defs/operation" },
+        "vm.stop": { "$ref": "#/$defs/operation" },
+        "vm.destroy": { "$ref": "#/$defs/operation" },
+        "provider.preflight": { "$ref": "#/$defs/operation" },
+        "provider.stage": { "$ref": "#/$defs/operation" },
+        "provider.execute": { "$ref": "#/$defs/operation" },
+        "provider.cancel": { "$ref": "#/$defs/operation" },
+        "provider.cleanup": { "$ref": "#/$defs/operation" },
+        "provider.status": { "$ref": "#/$defs/operation" },
+        "secret.store": { "$ref": "#/$defs/operation" },
+        "secret.consume": { "$ref": "#/$defs/operation" },
+        "secret.revoke": { "$ref": "#/$defs/operation" },
+        "request-guard.admit": { "$ref": "#/$defs/operation" },
+        "request-guard.issue": { "$ref": "#/$defs/operation" },
+        "request-guard.revoke": { "$ref": "#/$defs/operation" },
+        "vm.emergencyStop": { "$ref": "#/$defs/operation" },
+        "reconcile.list": { "$ref": "#/$defs/operation" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lima"],
+      "properties": {
+        "lima": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "binary",
+            "ownerUid",
+            "mode",
+            "sha256",
+            "instance",
+            "instanceDirectory",
+            "creationNonce",
+            "nativeArchitecture",
+            "guestImageDigest",
+            "broker"
+          ],
+          "properties": {
+            "profile": { "const": "rak-lima-plain-native/1.0.0" },
+            "binary": { "$ref": "#/$defs/path" },
+            "ownerUid": { "const": 0 },
+            "mode": { "const": "0755" },
+            "sha256": { "$ref": "#/$defs/digest" },
+            "instance": { "$ref": "#/$defs/shortId" },
+            "instanceDirectory": { "$ref": "#/$defs/path" },
+            "creationNonce": { "$ref": "#/$defs/shortId" },
+            "nativeArchitecture": { "enum": ["amd64", "arm64"] },
+            "guestImageDigest": { "$ref": "#/$defs/digest" },
+            "broker": { "$ref": "#/$defs/fixedBinary" }
+          }
+        }
+      }
+    },
+    "acquisitionProfiles": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/shortId" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sshHandleId"],
+        "properties": { "sshHandleId": { "$ref": "#/$defs/shortId" } }
+      }
+    },
+    "sshHandles": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/shortId" },
+      "additionalProperties": { "$ref": "#/$defs/sshHandle" }
+    },
+    "secretRecipients": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/shortId" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["purpose", "publicKeyPath", "publicKeySha256"],
+        "properties": {
+          "purpose": { "enum": ["target-service", "probe"] },
+          "publicKeyPath": { "$ref": "#/$defs/path" },
+          "publicKeySha256": { "$ref": "#/$defs/digest" }
+        }
+      }
+    },
+    "requestGuardAuthorities": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/shortId" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["algorithm", "production", "publicKeyPath", "publicKeySha256"],
+        "properties": {
+          "algorithm": { "const": "Ed25519" },
+          "production": { "const": true },
+          "publicKeyPath": { "$ref": "#/$defs/path" },
+          "publicKeySha256": { "$ref": "#/$defs/digest" }
+        }
+      }
+    },
+    "requestGuardIssuer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "signingKeyId",
+        "publicKeyPath",
+        "publicKeySha256",
+        "signer",
+        "maxLifetimeSeconds",
+        "catalogPath",
+        "catalogSha256"
+      ],
+      "properties": {
+        "profile": { "const": "rak-dynamic-control-plan-issuer/1.0.0" },
+        "signingKeyId": { "$ref": "#/$defs/shortId" },
+        "publicKeyPath": { "$ref": "#/$defs/path" },
+        "publicKeySha256": { "$ref": "#/$defs/digest" },
+        "signer": { "$ref": "#/$defs/fixedBinary" },
+        "maxLifetimeSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1800
+        },
+        "catalogPath": { "$ref": "#/$defs/path" },
+        "catalogSha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "providerReviewProfiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex", "claude-code"],
+      "properties": {
+        "codex": { "$ref": "#/$defs/providerProfile" },
+        "claude-code": { "$ref": "#/$defs/providerProfile" }
+      }
+    },
+    "humanReviewKeys": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/kindedAuthorityKey" },
+      "contains": {
+        "type": "object",
+        "properties": { "kind": { "const": "independent-security" } },
+        "required": ["kind"]
+      },
+      "minContains": 1,
+      "maxContains": 1,
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "kind": { "const": "independent-decision" } },
+            "required": ["kind"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "kind": { "const": "technical-human" } },
+            "required": ["kind"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "kind": { "const": "lay-human" } },
+            "required": ["kind"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": { "kind": { "const": "customer-acceptance" } },
+            "required": ["kind"]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "releaseAuthorizationKey": { "$ref": "#/$defs/authorityKey" },
+    "releaseCertificateKeys": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/certificateAuthorityKey" }
+    },
+    "releaseCertificateSubjects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "releaseAssets",
+        "toolchain",
+        "images",
+        "sbom",
+        "provenance",
+        "vulnerability",
+        "officialSchemas",
+        "providerCanaries",
+        "providerEquivalence",
+        "linux-arm64",
+        "linux-x86-64",
+        "macos-arm64",
+        "macos-x86-64"
+      ],
+      "properties": {
+        "releaseAssets": { "$ref": "#/$defs/digest" },
+        "toolchain": { "$ref": "#/$defs/digest" },
+        "images": { "$ref": "#/$defs/digest" },
+        "sbom": { "$ref": "#/$defs/digest" },
+        "provenance": { "$ref": "#/$defs/digest" },
+        "vulnerability": { "$ref": "#/$defs/digest" },
+        "officialSchemas": { "$ref": "#/$defs/digest" },
+        "providerCanaries": { "$ref": "#/$defs/digest" },
+        "providerEquivalence": { "$ref": "#/$defs/digest" },
+        "linux-arm64": { "$ref": "#/$defs/digest" },
+        "linux-x86-64": { "$ref": "#/$defs/digest" },
+        "macos-arm64": { "$ref": "#/$defs/digest" },
+        "macos-x86-64": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "unresolvedBoundaryDefects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["defectId", "severity", "state"],
+        "properties": {
+          "defectId": { "$ref": "#/$defs/id" },
+          "severity": { "enum": ["Critical", "High", "Medium", "Low"] },
+          "state": { "enum": ["unresolved", "resolved"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"
+    },
+    "shortId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^/(?:[^/\\\\u0000]+/)*[^/\\\\u0000]+$"
+    },
+    "fixedBinary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binary", "ownerUid", "mode", "sha256"],
+      "properties": {
+        "binary": { "$ref": "#/$defs/path" },
+        "ownerUid": { "const": 0 },
+        "mode": { "const": "0755" },
+        "sha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "driverProfile",
+        "binary",
+        "ownerUid",
+        "mode",
+        "sha256",
+        "timeoutMs",
+        "creationNonce",
+        "profileId"
+      ],
+      "properties": {
+        "driverProfile": { "const": "rak-fixed-runtime-broker/1.0.0" },
+        "binary": { "$ref": "#/$defs/path" },
+        "ownerUid": { "const": 0 },
+        "mode": { "const": "0755" },
+        "sha256": { "$ref": "#/$defs/digest" },
+        "timeoutMs": { "type": "integer", "minimum": 1, "maximum": 120000 },
+        "creationNonce": { "$ref": "#/$defs/shortId" },
+        "profileId": { "$ref": "#/$defs/shortId" }
+      }
+    },
+    "sshHandle": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "credentialKind",
+            "credentialPath",
+            "knownHostsPath",
+            "host",
+            "port",
+            "hostKeyFingerprint",
+            "url",
+            "ref",
+            "expiresAt",
+            "maxUses",
+            "scope"
+          ],
+          "properties": {
+            "credentialKind": { "const": "key-file" },
+            "credentialPath": { "$ref": "#/$defs/path" },
+            "knownHostsPath": { "$ref": "#/$defs/path" },
+            "host": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "hostKeyFingerprint": {
+              "type": "string",
+              "pattern": "^SHA256:[A-Za-z0-9+/]{43}$"
+            },
+            "url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+            "ref": {
+              "oneOf": [{ "type": "string", "minLength": 1, "maxLength": 1024 }, { "type": "null" }]
+            },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "maxUses": { "type": "integer", "minimum": 1 },
+            "scope": { "const": "repository-read-only" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "credentialKind",
+            "agentSocketPath",
+            "knownHostsPath",
+            "host",
+            "port",
+            "hostKeyFingerprint",
+            "url",
+            "ref",
+            "expiresAt",
+            "maxUses",
+            "scope"
+          ],
+          "properties": {
+            "credentialKind": { "const": "agent-socket" },
+            "agentSocketPath": { "$ref": "#/$defs/path" },
+            "knownHostsPath": { "$ref": "#/$defs/path" },
+            "host": { "type": "string", "minLength": 1, "maxLength": 253 },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "hostKeyFingerprint": {
+              "type": "string",
+              "pattern": "^SHA256:[A-Za-z0-9+/]{43}$"
+            },
+            "url": { "type": "string", "minLength": 1, "maxLength": 2048 },
+            "ref": {
+              "oneOf": [{ "type": "string", "minLength": 1, "maxLength": 1024 }, { "type": "null" }]
+            },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "maxUses": { "type": "integer", "minimum": 1 },
+            "scope": { "const": "repository-read-only" }
+          }
+        }
+      ]
+    },
+    "providerProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "releaseAuthorityDigest",
+        "immutableImageReference",
+        "providerHomeAuthorityDigest",
+        "networkPolicyDigest",
+        "outputSchemaDigest"
+      ],
+      "properties": {
+        "releaseAuthorityDigest": { "$ref": "#/$defs/digest" },
+        "immutableImageReference": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,300}@sha256:[a-f0-9]{64}$"
+        },
+        "providerHomeAuthorityDigest": { "$ref": "#/$defs/digest" },
+        "networkPolicyDigest": { "$ref": "#/$defs/digest" },
+        "outputSchemaDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "authorityKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signingKeyId", "publicKeyPath", "publicKeySha256"],
+      "properties": {
+        "signingKeyId": { "$ref": "#/$defs/id" },
+        "publicKeyPath": { "$ref": "#/$defs/path" },
+        "publicKeySha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "kindedAuthorityKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "signingKeyId", "publicKeyPath", "publicKeySha256"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "independent-security",
+            "independent-decision",
+            "technical-human",
+            "lay-human",
+            "customer-acceptance"
+          ]
+        },
+        "signingKeyId": { "$ref": "#/$defs/id" },
+        "publicKeyPath": { "$ref": "#/$defs/path" },
+        "publicKeySha256": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "certificateAuthorityKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "signingKeyId", "publicKeyPath", "publicKeySha256"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "releaseAssets",
+            "toolchain",
+            "images",
+            "sbom",
+            "provenance",
+            "vulnerability",
+            "officialSchemas",
+            "providerCanaries",
+            "providerEquivalence",
+            "linux-arm64",
+            "linux-x86-64",
+            "macos-arm64",
+            "macos-x86-64",
+            "ssh",
+            "cleanup:codex",
+            "cleanup:claude-code"
+          ]
+        },
+        "signingKeyId": { "$ref": "#/$defs/id" },
+        "publicKeyPath": { "$ref": "#/$defs/path" },
+        "publicKeySha256": { "$ref": "#/$defs/digest" }
+      }
+    }
+  }
+}

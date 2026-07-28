@@ -1,0 +1,29 @@
+{
+  "name": "@rak/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "clean": "tsc -b --clean",
+    "dev": "vite --host 127.0.0.1 --port 4173",
+    "pretest:e2e": "pnpm build",
+    "preview": "vite preview",
+    "test:e2e": "playwright test --config playwright.config.ts",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@rak/contracts": "workspace:*",
+    "lucide-react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
+    "vite": "8.0.0"
+  }
+}

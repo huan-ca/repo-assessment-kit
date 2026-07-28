@@ -1,0 +1,14 @@
+Static Analysis Results Interchange Format (SARIF) Version 2.1.0 Plus Errata 01
+
+Copyright © OASIS Open 2023. All Rights Reserved.
+
+This release includes the unmodified official SARIF JSON Schema published as an
+additional artifact of the OASIS Standard. OASIS welcomes reference to,
+implementation, and use of its standards. The applicable notices and intellectual
+property terms are those in the standard:
+
+https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html
+https://www.oasis-open.org/policies-guidelines/ipr/
+
+OASIS and SARIF names are used only to identify the official standard and schema.
+No OASIS endorsement is stated or implied.

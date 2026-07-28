@@ -1,0 +1,24 @@
+{
+  "name": "@rak/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "dev": "node --watch --enable-source-maps dist/index.js",
+    "start": "node --enable-source-maps dist/index.js",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@fastify/cookie": "catalog:",
+    "@rak/contracts": "workspace:*",
+    "@rak/persistence": "workspace:*",
+    "@rak/workflow": "workspace:*",
+    "fastify": "catalog:",
+    "zod": "catalog:"
+  }
+}

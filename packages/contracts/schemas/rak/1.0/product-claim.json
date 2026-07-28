@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/product-claim.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "claimId",
+    "runId",
+    "topic",
+    "provenance",
+    "confidence",
+    "evidenceOccurrenceIds",
+    "conflictsWithClaimIds",
+    "revision"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "claimId": { "type": "string" },
+    "runId": { "type": "string" },
+    "topic": { "type": "string" },
+    "statement": { "type": "string" },
+    "unknown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "confidenceEffect", "coverageEffect", "followUp"],
+      "properties": {
+        "reason": { "type": "string" },
+        "confidenceEffect": { "type": "string" },
+        "coverageEffect": { "type": "string" },
+        "followUp": { "type": "string" }
+      }
+    },
+    "provenance": {
+      "enum": [
+        "owner-stated",
+        "documented",
+        "observed",
+        "analytics-supported",
+        "code-inferred",
+        "unverified",
+        "conflicting"
+      ]
+    },
+    "speakerRole": { "type": "string" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "analytics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset", "query", "windowStart", "windowEnd"],
+      "properties": {
+        "dataset": { "type": "string" },
+        "query": { "type": "string" },
+        "windowStart": { "type": "string", "format": "date-time" },
+        "windowEnd": { "type": "string", "format": "date-time" }
+      }
+    },
+    "inferenceReasoning": { "type": "string" },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } },
+    "conflictsWithClaimIds": { "type": "array", "items": { "type": "string" } },
+    "supersedesClaimId": { "type": "string" },
+    "revision": { "type": "integer", "minimum": 1 }
+  },
+  "oneOf": [
+    {
+      "properties": { "statement": {}, "unknown": {} },
+      "required": ["statement"],
+      "not": { "properties": { "unknown": {} }, "required": ["unknown"] }
+    },
+    {
+      "properties": { "statement": {}, "unknown": {} },
+      "required": ["unknown"],
+      "not": { "properties": { "statement": {} }, "required": ["statement"] }
+    }
+  ]
+}

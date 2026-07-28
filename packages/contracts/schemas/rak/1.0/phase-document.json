@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/phase-document.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "phaseId",
+    "runId",
+    "phaseKey",
+    "phaseRevision",
+    "state",
+    "required",
+    "dependsOn",
+    "limitationIds"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "phaseId": { "type": "string" },
+    "runId": { "type": "string" },
+    "phaseKey": { "type": "string" },
+    "phaseRevision": { "type": "integer", "minimum": 1 },
+    "state": {
+      "enum": [
+        "PENDING",
+        "READY",
+        "RUNNING",
+        "WAITING_INPUT",
+        "RETRYABLE_FAILURE",
+        "SUCCEEDED",
+        "FAILED",
+        "SKIPPED",
+        "CANCELLED"
+      ]
+    },
+    "currentAttemptId": { "type": "string" },
+    "required": { "type": "boolean" },
+    "dependsOn": { "type": "array", "items": { "type": "string" } },
+    "limitationIds": { "type": "array", "items": { "type": "string" } }
+  }
+}

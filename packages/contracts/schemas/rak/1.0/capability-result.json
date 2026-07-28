@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/capability-result.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capabilityId",
+    "scope",
+    "declaredBy",
+    "support",
+    "attestation",
+    "approval",
+    "effective",
+    "reasonCode",
+    "reason",
+    "evidenceOccurrenceIds",
+    "coverageEffects",
+    "checkedAt"
+  ],
+  "properties": {
+    "capabilityId": { "type": "string" },
+    "scope": { "enum": ["installation", "engagement", "run", "attempt"] },
+    "declaredBy": { "type": "array", "items": { "type": "string" } },
+    "support": { "enum": ["supported", "unsupported"] },
+    "attestation": { "enum": ["passed", "failed", "missing", "expired"] },
+    "approval": { "enum": ["approved", "denied", "not-required", "missing"] },
+    "effective": { "enum": ["available", "unavailable", "blocked", "denied", "not-applicable"] },
+    "reasonCode": { "type": "string" },
+    "reason": { "type": "string" },
+    "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } },
+    "coverageEffects": { "type": "array", "items": { "type": "string" } },
+    "checkedAt": { "type": "string", "format": "date-time" }
+  }
+}

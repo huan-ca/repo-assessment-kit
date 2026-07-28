@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/evidence-occurrence.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "runId",
+    "blobId",
+    "evidenceType",
+    "title",
+    "snapshotId",
+    "activityId",
+    "capturedAt",
+    "sensitivity",
+    "redactionState",
+    "validationState",
+    "collectionLimitations",
+    "derivedFromEvidenceIds",
+    "linkedClaimIds",
+    "linkedFindingIds",
+    "linkedControlIds"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "evidenceId": { "type": "string" },
+    "runId": { "type": "string" },
+    "blobId": { "type": "string" },
+    "evidenceType": { "type": "string" },
+    "title": { "type": "string" },
+    "snapshotId": { "type": "string" },
+    "activityId": { "type": "string" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "sourceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repoRelPath"],
+      "properties": {
+        "repoRelPath": { "type": "string" },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "startColumn": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "packageRelPath": { "type": "string" },
+    "externalLocator": { "type": "string" },
+    "sensitivity": {
+      "enum": ["public", "customer-confidential", "secret-suspected", "restricted"]
+    },
+    "redactionState": { "enum": ["none-required", "pending", "redacted", "excluded"] },
+    "validationState": { "enum": ["unreviewed", "validated", "disputed", "invalidated"] },
+    "collectionLimitations": { "type": "array", "items": { "type": "string" } },
+    "derivedFromEvidenceIds": { "type": "array", "items": { "type": "string" } },
+    "linkedClaimIds": { "type": "array", "items": { "type": "string" } },
+    "linkedFindingIds": { "type": "array", "items": { "type": "string" } },
+    "linkedControlIds": { "type": "array", "items": { "type": "string" } },
+    "supersedesEvidenceId": { "type": "string" }
+  }
+}

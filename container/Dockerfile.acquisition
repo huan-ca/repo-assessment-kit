@@ -1,0 +1,13 @@
+FROM node:24.4.1-bookworm-slim@sha256:36ae19f59c91f3303c7a648f07493fe14c4bd91320ac8d898416327bacf1bbfa
+
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends ca-certificates git openssh-client tini \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --chmod=0555 container/acquisition-entrypoint.sh /usr/local/bin/rak-acquire
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin acquisition \
+ && install -d -m 0700 -o 10001 -g 10001 /out
+VOLUME ["/out"]
+USER 10001:10001
+WORKDIR /run/acquisition
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/rak-acquire"]

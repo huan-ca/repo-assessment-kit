@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/package-view.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["packageId", "runId", "revision", "state"],
+  "properties": {
+    "packageId": { "type": "string" },
+    "runId": { "type": "string" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "state": { "enum": ["REQUESTED", "STAGING", "VALIDATING", "VALIDATED", "FAILED"] },
+    "zipByteLength": { "type": "string", "pattern": "^[0-9]+$" },
+    "zipSha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "encrypted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "byteLength", "sha256"],
+      "properties": {
+        "kind": { "const": "age-v1" },
+        "byteLength": { "type": "string", "pattern": "^[0-9]+$" },
+        "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "validationReportId": { "type": "string" }
+  }
+}

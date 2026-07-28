@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/approval.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "approvalId",
+    "runId",
+    "capabilityId",
+    "decision",
+    "destinations",
+    "dataCategories",
+    "recipientServices",
+    "disclosureVersion",
+    "approverRole",
+    "approvedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "approvalId": { "type": "string" },
+    "runId": { "type": "string" },
+    "capabilityId": { "type": "string" },
+    "decision": { "enum": ["approved", "denied"] },
+    "destinations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scheme", "host", "port"],
+        "properties": {
+          "scheme": { "type": "string" },
+          "host": { "type": "string" },
+          "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+          "pathPrefix": { "type": "string" }
+        }
+      }
+    },
+    "methods": { "type": "array", "items": { "type": "string" } },
+    "dataCategories": { "type": "array", "items": { "type": "string" } },
+    "recipientServices": { "type": "array", "items": { "type": "string" } },
+    "credentialHandleId": { "type": "string" },
+    "disclosureVersion": { "type": "string" },
+    "approverRole": { "type": "string" },
+    "approvedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "revokedAt": { "type": "string", "format": "date-time" }
+  }
+}

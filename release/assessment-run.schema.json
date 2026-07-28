@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repo-assessment-kit.local/schemas/rak-release-run-config/1.0.0",
+  "title": "Repository Assessment Kit release run configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "projectSlug",
+    "source",
+    "discoveryPath",
+    "outputRoot",
+    "runtime",
+    "sandboxCredentials",
+    "optionalServices"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "projectSlug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "path", "workingTreeMode"],
+          "properties": {
+            "kind": {
+              "const": "local"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "workingTreeMode": {
+              "const": "frozen-working-tree"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "url", "acquisitionProfileId"],
+          "properties": {
+            "kind": {
+              "const": "ssh"
+            },
+            "url": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "pattern": "^(?:ssh://[^\\s]+|git@[^\\s:]+:[^\\s]+)$"
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "acquisitionProfileId": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._/-]{0,127}$"
+            }
+          }
+        }
+      ]
+    },
+    "discoveryPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "outputRoot": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "targetOrigins"],
+      "properties": {
+        "mode": {
+          "enum": ["static-only", "isolated"]
+        },
+        "targetOrigins": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scheme", "host", "port"],
+            "properties": {
+              "scheme": {
+                "enum": ["http", "https"]
+              },
+              "host": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?$",
+                "not": {
+                  "pattern": "\\*"
+                }
+              },
+              "port": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535
+              }
+            }
+          }
+        },
+        "selectedProfileIds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" }
+        },
+        "approvalIds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" }
+        },
+        "plannedControlIds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" }
+        },
+        "probeProfileId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "candidateRelPaths": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(/|$))(?!.*\\\\).+$"
+          }
+        },
+        "buildAcquisitionApprovalId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "declaredArtifactIds": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" }
+        },
+        "artifactByteLimit": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "controlPlanLifetimeSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1800
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "isolated" } } },
+          "then": {
+            "required": [
+              "selectedProfileIds",
+              "approvalIds",
+              "plannedControlIds",
+              "probeProfileId",
+              "candidateRelPaths",
+              "declaredArtifactIds",
+              "artifactByteLimit"
+            ]
+          }
+        }
+      ]
+    },
+    "sandboxCredentials": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "handleId",
+          "purpose",
+          "recipient",
+          "handleEnvironment",
+          "approvalDigest",
+          "expiresAt",
+          "production"
+        ],
+        "properties": {
+          "handleId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "purpose": {
+            "const": "probe"
+          },
+          "recipient": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._/-]{0,127}$"
+          },
+          "handleEnvironment": {
+            "type": "string",
+            "pattern": "^RAK_SANDBOX_[A-Z0-9_]{1,112}$"
+          },
+          "approvalDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "production": {
+            "const": false
+          }
+        }
+      }
+    },
+    "optionalServices": {
+      "type": "array",
+      "maxItems": 0
+    }
+  }
+}

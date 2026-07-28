@@ -1,0 +1,26 @@
+FROM node:24.4.1-bookworm-slim@sha256:36ae19f59c91f3303c7a648f07493fe14c4bd91320ac8d898416327bacf1bbfa
+
+ARG CLAUDE_CODE_VERSION=2.1.220
+LABEL org.opencontainers.image.title="Repo Assessment Kit Claude Code provider compartment" \
+      org.opencontainers.image.version="0.1.0" \
+      io.repo-assessment-kit.provider="claude-code" \
+      io.repo-assessment-kit.provider-cli-version="${CLAUDE_CODE_VERSION}"
+ENV COREPACK_HOME=/opt/corepack \
+    CLAUDE_CONFIG_DIR=/home/node/.claude \
+    DISABLE_AUTOUPDATER=1 \
+    NODE_ENV=production
+
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends ca-certificates tini \
+ && rm -rf /var/lib/apt/lists/* \
+ && npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+ && claude --version
+
+COPY --chmod=0555 container/provider-entrypoint.sh /usr/local/bin/rak-provider-entrypoint
+COPY --chmod=0444 container/provider-task.mjs /usr/local/lib/rak-provider-task.mjs
+RUN mkdir -p /home/node/.claude && chown -R node:node /home/node
+
+USER node
+WORKDIR /run/rak
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/rak-provider-entrypoint", "claude-code"]
+CMD ["status"]

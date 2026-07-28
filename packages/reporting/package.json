@@ -1,0 +1,24 @@
+{
+  "name": "@rak/reporting",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@rak/contracts": "workspace:*",
+    "sanitize-html": "catalog:"
+  },
+  "devDependencies": {
+    "@types/sanitize-html": "catalog:"
+  }
+}

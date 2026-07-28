@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repo-assessment-kit.invalid/schemas/rak-provider-pair-state/1.0.0",
+  "title": "RAK provider pair state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "equivalencePairId",
+    "codexRunId",
+    "claudeRunId",
+    "inputBinding",
+    "inputBindingDigest",
+    "runReceiptDigests",
+    "runDirectories",
+    "authorProposalDigests",
+    "crossReviewTasks",
+    "providerRunIds",
+    "successorRunId",
+    "successorSnapshotId",
+    "successorZipDigest",
+    "reconciliationDigest",
+    "admittedReviews",
+    "authorization",
+    "pendingAdmission",
+    "pendingRelease",
+    "state",
+    "blockers",
+    "cleanup",
+    "sshRequired",
+    "sshReceiptDigests",
+    "createdAt",
+    "journalDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "rak-provider-pair-state/1.0.0" },
+    "equivalencePairId": { "$ref": "#/$defs/id" },
+    "codexRunId": { "$ref": "#/$defs/id" },
+    "claudeRunId": { "$ref": "#/$defs/id" },
+    "inputBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshotId",
+        "snapshotManifestDigest",
+        "discoveryRevisionDigest",
+        "workflowProfile",
+        "exportProfile",
+        "contractProfile",
+        "assessmentPlanDigest",
+        "policyDigest",
+        "toolchainLockDigest",
+        "standardsLockDigest",
+        "instructionBundleDigest",
+        "capabilityRequirementsDigest"
+      ],
+      "properties": {
+        "snapshotId": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "snapshotManifestDigest": { "$ref": "#/$defs/digest" },
+        "discoveryRevisionDigest": { "$ref": "#/$defs/digest" },
+        "workflowProfile": { "const": "rak-workflow/1.0.0" },
+        "exportProfile": { "const": "rak-export-profile/1.0.0" },
+        "contractProfile": { "const": "rak-contract/1.0.0" },
+        "assessmentPlanDigest": { "$ref": "#/$defs/digest" },
+        "policyDigest": { "$ref": "#/$defs/digest" },
+        "toolchainLockDigest": { "$ref": "#/$defs/digest" },
+        "standardsLockDigest": { "$ref": "#/$defs/digest" },
+        "instructionBundleDigest": { "$ref": "#/$defs/digest" },
+        "capabilityRequirementsDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "inputBindingDigest": { "$ref": "#/$defs/digest" },
+    "runReceiptDigests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex", "claude-code"],
+      "properties": {
+        "codex": { "$ref": "#/$defs/digest" },
+        "claude-code": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "runDirectories": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex", "claude-code"],
+      "properties": {
+        "codex": { "$ref": "#/$defs/relativePath" },
+        "claude-code": { "$ref": "#/$defs/relativePath" }
+      }
+    },
+    "authorProposalDigests": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/digest" }
+    },
+    "crossReviewTasks": { "type": "array", "items": { "type": "object" } },
+    "providerRunIds": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "successorRunId": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/id" }]
+    },
+    "successorSnapshotId": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "successorZipDigest": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/digest" }]
+    },
+    "reconciliationDigest": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/digest" }]
+    },
+    "admittedReviews": { "type": "array", "maxItems": 5, "items": { "type": "object" } },
+    "authorization": {
+      "oneOf": [{ "type": "null" }, { "type": "object" }]
+    },
+    "pendingAdmission": {
+      "oneOf": [{ "type": "null" }, { "type": "object" }]
+    },
+    "pendingRelease": {
+      "oneOf": [{ "type": "null" }, { "type": "object" }]
+    },
+    "state": {
+      "enum": [
+        "PAIRING",
+        "DRAFT_VALIDATED_RELEASE_BLOCKED",
+        "CUSTOMER_RELEASE_PREPARED",
+        "CUSTOMER_RELEASE_AUTHORIZED"
+      ]
+    },
+    "blockers": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "cleanup": { "type": "object" },
+    "sshRequired": { "type": "boolean" },
+    "sshReceiptDigests": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/digest" }
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "journalDigest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "not": { "pattern": "(^/|\\\\|(^|/)\\.\\.?(?:/|$))" }
+    }
+  }
+}

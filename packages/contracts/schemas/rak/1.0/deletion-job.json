@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/deletion-job.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["deletionJobId", "runId", "scope", "state", "removedClasses", "recoveryPossible"],
+  "properties": {
+    "deletionJobId": { "type": "string" },
+    "runId": { "type": "string" },
+    "scope": { "enum": ["internal-only", "run-except-packages", "entire-run"] },
+    "state": {
+      "enum": [
+        "REQUESTED",
+        "PRECHECK",
+        "TRASHED",
+        "RESTORING",
+        "RESTORED",
+        "PURGING",
+        "PURGED",
+        "FAILED"
+      ]
+    },
+    "trashPathDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "trashedAt": { "type": "string", "format": "date-time" },
+    "purgeAfter": { "type": "string", "format": "date-time" },
+    "removedClasses": { "type": "array", "items": { "type": "string" } },
+    "recoveryPossible": { "type": "boolean" },
+    "failureCode": { "type": "string" }
+  }
+}

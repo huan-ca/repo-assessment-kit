@@ -1,0 +1,1345 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Repository Assessment Kit local API",
+    "version": "1.0.0"
+  },
+  "servers": [{ "url": "/api/v1" }],
+  "paths": {
+    "/session/bootstrap": {
+      "post": {
+        "operationId": "bootstrapSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["token"],
+                "properties": { "token": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        },
+        "responses": { "204": { "description": "Session established" } }
+      }
+    },
+    "/session": {
+      "delete": {
+        "operationId": "deleteSession",
+        "responses": { "204": { "description": "Session deleted" } }
+      }
+    },
+    "/system": {
+      "get": {
+        "operationId": "getSystem",
+        "responses": {
+          "200": {
+            "description": "System readiness",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SystemView" } }
+            }
+          }
+        }
+      }
+    },
+    "/source-handles": {
+      "get": {
+        "operationId": "listSourceHandles",
+        "responses": {
+          "200": {
+            "description": "Registered source handles",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SourceHandleList" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs": {
+      "get": {
+        "operationId": "listRuns",
+        "parameters": [
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          { "name": "state", "in": "query", "schema": { "$ref": "#/components/schemas/RunState" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/RunListResponse" } }
+      },
+      "post": {
+        "operationId": "createRun",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateRunInput" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Draft created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/rak/1.0/run-document.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{runId}": {
+      "get": {
+        "operationId": "getRun",
+        "parameters": [{ "$ref": "#/components/parameters/RunId" }],
+        "responses": { "200": { "$ref": "#/components/responses/RunDetailResponse" } }
+      }
+    },
+    "/runs/{runId}/discovery": {
+      "put": {
+        "operationId": "putDiscovery",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/DiscoveryInput" } }
+          }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/DiscoveryResponse" } }
+      }
+    },
+    "/runs/{runId}/approvals": {
+      "put": {
+        "operationId": "putApprovals",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ApprovalInput" } }
+          }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/ApprovalResponse" } }
+      }
+    },
+    "/runs/{runId}/secrets": {
+      "post": {
+        "operationId": "createSecret",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["purpose", "recipient", "expiresAt"],
+                "properties": {
+                  "purpose": { "enum": ["target-service", "probe"] },
+                  "recipient": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "approvalId": { "type": "string" },
+                  "expiresAt": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "$ref": "#/components/responses/SecretCreatedResponse" } }
+      }
+    },
+    "/secret-uploads/{uploadToken}": {
+      "put": {
+        "operationId": "uploadSecret",
+        "parameters": [
+          {
+            "name": "uploadToken",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "minLength": 32 }
+          },
+          {
+            "name": "Content-Length",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 65536 }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": { "type": "string", "contentEncoding": "base64", "maxLength": 87384 }
+            }
+          }
+        },
+        "responses": { "204": { "description": "Secret consumed into protected memory" } }
+      }
+    },
+    "/runs/{runId}/secrets/{handleId}": {
+      "delete": {
+        "operationId": "revokeSecret",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" },
+          { "name": "handleId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "204": { "description": "Secret revoked" } }
+      }
+    },
+    "/runs/{runId}/revisions": {
+      "post": {
+        "operationId": "createRevision",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["reason", "copyDiscovery"],
+                "properties": {
+                  "reason": { "type": "string", "minLength": 1 },
+                  "copyDiscovery": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successor draft",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "./schemas/rak/1.0/run-document.json" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{runId}/actions/resolve-target": {
+      "post": {
+        "operationId": "resolveTarget",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResolveTargetInput" }
+            }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/actions/start": {
+      "post": {
+        "operationId": "startRun",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/StartRunInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/actions/pause": {
+      "post": {
+        "operationId": "pauseRun",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ReasonInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/actions/resume": {
+      "post": {
+        "operationId": "resumeRun",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ResumeRunInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/actions/cancel": {
+      "post": {
+        "operationId": "cancelRun",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ReasonInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/actions/runtime-gate": {
+      "post": {
+        "operationId": "rerunRuntimeGate",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/EmptyInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/actions/validate": {
+      "post": {
+        "operationId": "validateRun",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/EmptyInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/capabilities": {
+      "get": {
+        "operationId": "getCapabilities",
+        "parameters": [{ "$ref": "#/components/parameters/RunId" }],
+        "responses": { "200": { "$ref": "#/components/responses/CapabilityListResponse" } }
+      }
+    },
+    "/runs/{runId}/coverage": {
+      "get": {
+        "operationId": "listCoverage",
+        "parameters": [{ "$ref": "#/components/parameters/RunId" }],
+        "responses": { "200": { "$ref": "#/components/responses/CoverageResponse" } }
+      }
+    },
+    "/runs/{runId}/controls": {
+      "get": {
+        "operationId": "listControls",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "enum": ["pass", "fail", "partial", "blocked", "not applicable", "not tested"]
+            }
+          },
+          { "name": "profileId", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/ControlListResponse" } }
+      }
+    },
+    "/runs/{runId}/findings": {
+      "get": {
+        "operationId": "listFindings",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": { "enum": ["critical", "high", "medium", "low", "informational"] }
+          },
+          {
+            "name": "validationState",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "unreviewed",
+                "corroborated",
+                "independently reproduced",
+                "disputed",
+                "invalidated"
+              ]
+            }
+          },
+          { "name": "domainId", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/FindingListResponse" } }
+      }
+    },
+    "/runs/{runId}/findings/{findingId}": {
+      "get": {
+        "operationId": "getFinding",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "name": "findingId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/FindingDetailResponse" } }
+      }
+    },
+    "/runs/{runId}/evidence": {
+      "get": {
+        "operationId": "listEvidence",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Limit" },
+          { "name": "type", "in": "query", "schema": { "type": "string" } },
+          {
+            "name": "sensitivity",
+            "in": "query",
+            "schema": {
+              "enum": ["public", "customer-confidential", "secret-suspected", "restricted"]
+            }
+          },
+          {
+            "name": "validationState",
+            "in": "query",
+            "schema": { "enum": ["unreviewed", "validated", "disputed", "invalidated"] }
+          }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/EvidenceListResponse" } }
+      }
+    },
+    "/runs/{runId}/evidence/{evidenceId}": {
+      "get": {
+        "operationId": "getEvidence",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "name": "evidenceId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/EvidenceDetailResponse" } }
+      }
+    },
+    "/runs/{runId}/evidence/{evidenceId}/preview": {
+      "get": {
+        "operationId": "previewEvidence",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "name": "evidenceId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/EvidencePreviewResponse" } }
+      }
+    },
+    "/runs/{runId}/evidence/{evidenceId}/download": {
+      "get": {
+        "operationId": "downloadEvidence",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "name": "evidenceId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Admitted evidence attachment" } }
+      }
+    },
+    "/runs/{runId}/decision": {
+      "get": {
+        "operationId": "getDecision",
+        "parameters": [{ "$ref": "#/components/parameters/RunId" }],
+        "responses": {
+          "200": {
+            "description": "Current decision",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "./schemas/rak/1.0/decision-comparison.json" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{runId}/reviews": {
+      "post": {
+        "operationId": "createReview",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ReviewInput" } }
+          }
+        },
+        "responses": { "201": { "$ref": "#/components/responses/ReviewCreatedResponse" } }
+      }
+    },
+    "/runs/{runId}/packages": {
+      "get": {
+        "operationId": "listPackages",
+        "parameters": [{ "$ref": "#/components/parameters/RunId" }],
+        "responses": { "200": { "$ref": "#/components/responses/PackageListResponse" } }
+      },
+      "post": {
+        "operationId": "createPackage",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreatePackageInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/ActionAcceptedResponse" } }
+      }
+    },
+    "/runs/{runId}/packages/{packageId}/download": {
+      "get": {
+        "operationId": "downloadPackage",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "name": "packageId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Validated package attachment" } }
+      }
+    },
+    "/runs/{runId}/packages/{packageId}/digest": {
+      "get": {
+        "operationId": "downloadPackageDigest",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "name": "packageId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated package digest",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        }
+      }
+    },
+    "/runs/{runId}/events": {
+      "get": {
+        "operationId": "streamEvents",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "schema": { "type": "string", "pattern": "^[0-9]+$" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run event stream",
+            "content": { "text/event-stream": { "schema": { "type": "string" } } }
+          },
+          "410": { "$ref": "#/components/responses/ErrorResponse" }
+        }
+      }
+    },
+    "/runs/{runId}/deletion": {
+      "post": {
+        "operationId": "requestRunDeletion",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/DeleteRunInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/DeletionRequestedResponse" } }
+      }
+    },
+    "/runs/{runId}/deletions/{deletionJobId}": {
+      "get": {
+        "operationId": "getDeletionJob",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          {
+            "name": "deletionJobId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/DeletionJobResponse" } }
+      }
+    },
+    "/runs/{runId}/deletions/{deletionJobId}/restore": {
+      "post": {
+        "operationId": "restoreRunDeletion",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunId" },
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          { "$ref": "#/components/parameters/IfMatch" },
+          {
+            "name": "deletionJobId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/RestoreRunInput" } }
+          }
+        },
+        "responses": { "202": { "$ref": "#/components/responses/DeletionRestoringResponse" } }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "RunId": {
+        "name": "runId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "pattern": "^run_" }
+      },
+      "Cursor": { "name": "cursor", "in": "query", "schema": { "type": "string" } },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 200 }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": { "type": "string", "pattern": "^\\\"[0-9]+\\\"$" }
+      }
+    },
+    "schemas": {
+      "RunState": {
+        "enum": [
+          "DRAFT",
+          "RESOLVING_TARGET",
+          "READY",
+          "EXECUTING",
+          "WAITING_INPUT",
+          "PAUSING",
+          "PAUSED",
+          "RECOVERABLE_FAILURE",
+          "VALIDATING",
+          "REVIEW_REQUIRED",
+          "PACKAGING",
+          "COMPLETED",
+          "CANCELLING",
+          "CANCELLED",
+          "FAILED"
+        ]
+      },
+      "CreateRunInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "projectSlug",
+          "engagementId",
+          "provider",
+          "source",
+          "selectedProfiles",
+          "optionalServiceIds"
+        ],
+        "properties": {
+          "projectSlug": { "type": "string" },
+          "engagementId": { "type": "string" },
+          "provider": { "enum": ["codex", "claude-code"] },
+          "source": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "sshHandleId", "url"],
+                "properties": {
+                  "kind": { "const": "ssh-git" },
+                  "sshHandleId": { "type": "string" },
+                  "url": { "type": "string" },
+                  "ref": { "type": "string" }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "sourceHandleId", "relativePath", "mode"],
+                "properties": {
+                  "kind": { "const": "local" },
+                  "sourceHandleId": { "type": "string" },
+                  "relativePath": { "type": "string" },
+                  "mode": { "enum": ["commit-only", "frozen-working-tree"] }
+                }
+              }
+            ]
+          },
+          "selectedProfiles": { "type": "array", "items": { "type": "string" } },
+          "optionalServiceIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "EmptyInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 0
+      },
+      "ResolveTargetInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["expectedRowVersion"],
+        "properties": {
+          "expectedRowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "StartRunInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["snapshotId"],
+        "properties": {
+          "snapshotId": { "type": "string", "minLength": 1 }
+        }
+      },
+      "ReasonInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reason"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      },
+      "ResumeRunInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["recoveryPlanId", "retryAttemptIds"],
+        "properties": {
+          "recoveryPlanId": { "type": "string", "minLength": 1 },
+          "retryAttemptIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "CreatePackageInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "encryption": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["mode", "recipient"],
+                "properties": {
+                  "mode": { "const": "x25519" },
+                  "recipient": { "type": "string", "minLength": 1 }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["mode"],
+                "properties": { "mode": { "const": "scrypt" } }
+              }
+            ]
+          }
+        }
+      },
+      "ReviewInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "reviewerRole", "inputDigest", "verdict", "itemResults"],
+        "properties": {
+          "kind": { "enum": ["technical-human", "lay-human"] },
+          "reviewerRole": { "type": "string", "minLength": 1 },
+          "inputDigest": { "$ref": "#/components/schemas/Digest" },
+          "verdict": { "enum": ["passed", "passed-with-objections", "failed"] },
+          "itemResults": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["itemId", "outcome", "evidenceOccurrenceIds"],
+              "properties": {
+                "itemId": { "type": "string", "minLength": 1 },
+                "outcome": {
+                  "enum": [
+                    "corroborated",
+                    "independently reproduced",
+                    "disputed",
+                    "invalidated",
+                    "not assessed"
+                  ]
+                },
+                "objection": { "type": "string", "minLength": 1 },
+                "evidenceOccurrenceIds": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          },
+          "notes": { "type": "string" }
+        }
+      },
+      "DeleteRunInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scope",
+          "includePackages",
+          "projectSlugConfirmation",
+          "packageDigestConfirmations"
+        ],
+        "properties": {
+          "scope": { "enum": ["internal-only", "run-except-packages", "entire-run"] },
+          "includePackages": { "type": "boolean" },
+          "projectSlugConfirmation": { "type": "string" },
+          "packageDigestConfirmations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Digest" }
+          }
+        }
+      },
+      "RestoreRunInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["projectSlugConfirmation", "trashPathDigest"],
+        "properties": {
+          "projectSlugConfirmation": { "type": "string" },
+          "trashPathDigest": { "$ref": "#/components/schemas/Digest" }
+        }
+      },
+      "Digest": {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      },
+      "SystemView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "productVersion",
+          "contractProfile",
+          "workflowProfile",
+          "exportProfile",
+          "launcherProvider",
+          "hostOs",
+          "hostArch",
+          "prerequisites"
+        ],
+        "properties": {
+          "productVersion": { "type": "string" },
+          "contractProfile": { "const": "rak-contract/1.0.0" },
+          "workflowProfile": { "const": "rak-workflow/1.0.0" },
+          "exportProfile": { "const": "rak-export-profile/1.0.0" },
+          "launcherProvider": { "enum": ["codex", "claude-code"] },
+          "hostOs": { "enum": ["macos", "linux"] },
+          "hostArch": { "enum": ["arm64", "x86_64"] },
+          "prerequisites": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "SourceHandle": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceHandleId",
+          "kind",
+          "displayName",
+          "allowedRootFingerprint",
+          "registeredAt"
+        ],
+        "properties": {
+          "sourceHandleId": { "type": "string" },
+          "kind": { "enum": ["local", "ssh"] },
+          "displayName": { "type": "string" },
+          "allowedRootFingerprint": { "$ref": "#/components/schemas/Digest" },
+          "registeredAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SourceHandleList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SourceHandle" }
+          }
+        }
+      },
+      "DiscoveryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claims"],
+        "properties": {
+          "claims": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/product-claim.json" }
+          }
+        }
+      },
+      "ApprovalInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["approvals"],
+        "properties": {
+          "approvals": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/approval.json" }
+          }
+        }
+      },
+      "PageMetadata": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": { "nextCursor": { "type": "string" } }
+      },
+      "RunList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/run-document.json" }
+          },
+          "nextCursor": { "type": "string" }
+        }
+      },
+      "RunDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["run", "phases", "currentCapabilities", "coverageSummary"],
+        "properties": {
+          "run": { "$ref": "./schemas/rak/1.0/run-document.json" },
+          "phases": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/phase-document.json" }
+          },
+          "currentCapabilities": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/capability-result.json" }
+          },
+          "coverageSummary": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/domain-coverage.json" }
+          }
+        }
+      },
+      "ActionAccepted": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operationId", "runId", "commandId", "acceptedState", "rowVersion"],
+        "properties": {
+          "operationId": { "type": "string" },
+          "runId": { "type": "string" },
+          "commandId": { "type": "string" },
+          "acceptedState": { "$ref": "#/components/schemas/RunState" },
+          "rowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "SecretCreated": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["handle", "uploadPath", "uploadTokenExpiresAt"],
+        "properties": {
+          "handle": { "$ref": "./schemas/rak/1.0/secret-handle.json" },
+          "uploadPath": { "type": "string", "pattern": "^/api/v1/secret-uploads/" },
+          "uploadTokenExpiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "DiscoveryResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claims", "rowVersion"],
+        "properties": {
+          "claims": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/product-claim.json" }
+          },
+          "rowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ApprovalResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["approvals", "capabilities", "rowVersion"],
+        "properties": {
+          "approvals": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/approval.json" }
+          },
+          "capabilities": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/capability-result.json" }
+          },
+          "rowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "CapabilityList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/capability-result.json" }
+          }
+        }
+      },
+      "CoverageResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "limitationIds"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/domain-coverage.json" }
+          },
+          "limitationIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ControlList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/planned-control.json" }
+          },
+          "nextCursor": { "type": "string" }
+        }
+      },
+      "FindingList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/finding.json" }
+          },
+          "nextCursor": { "type": "string" }
+        }
+      },
+      "FindingDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding", "evidence", "controls", "reviews"],
+        "properties": {
+          "finding": { "$ref": "./schemas/rak/1.0/finding.json" },
+          "evidence": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/evidence-occurrence.json" }
+          },
+          "controls": { "type": "array", "items": { "type": "string" } },
+          "reviews": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "EvidenceList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/evidence-occurrence.json" }
+          },
+          "nextCursor": { "type": "string" }
+        }
+      },
+      "EvidenceDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["occurrence", "previewAvailable", "downloadAvailable"],
+        "properties": {
+          "occurrence": { "$ref": "./schemas/rak/1.0/evidence-occurrence.json" },
+          "previewAvailable": { "type": "boolean" },
+          "downloadAvailable": { "type": "boolean" }
+        }
+      },
+      "EvidencePreview": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "mediaType", "text", "truncated", "derivativeEvidenceId"],
+            "properties": {
+              "kind": { "const": "escaped-text" },
+              "mediaType": { "const": "text/plain" },
+              "text": { "type": "string", "maxLength": 1048576 },
+              "truncated": { "type": "boolean" },
+              "derivativeEvidenceId": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "mediaType", "path", "width", "height", "derivativeEvidenceId"],
+            "properties": {
+              "kind": { "const": "reencoded-image" },
+              "mediaType": { "enum": ["image/png", "image/jpeg"] },
+              "path": { "type": "string" },
+              "width": { "type": "integer", "minimum": 1, "maximum": 20000 },
+              "height": { "type": "integer", "minimum": 1, "maximum": 20000 },
+              "derivativeEvidenceId": { "type": "string" }
+            }
+          }
+        ]
+      },
+      "ReviewCreated": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["review", "rowVersion"],
+        "properties": {
+          "review": { "$ref": "./schemas/rak/1.0/review.json" },
+          "rowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "PackageList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "./schemas/rak/1.0/package-view.json" }
+          }
+        }
+      },
+      "DeletionRequested": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["deletionJobId", "rowVersion"],
+        "properties": {
+          "deletionJobId": { "type": "string" },
+          "rowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "DeletionRestoring": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["deletionJobId", "state", "rowVersion"],
+        "properties": {
+          "deletionJobId": { "type": "string" },
+          "state": { "const": "RESTORING" },
+          "rowVersion": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message", "requestId", "retryable", "details"],
+            "properties": {
+              "code": { "type": "string", "minLength": 1 },
+              "message": { "type": "string", "minLength": 1 },
+              "retryable": { "type": "boolean" },
+              "requestId": { "type": "string", "minLength": 1 },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["reason"],
+                  "properties": {
+                    "path": { "type": "string" },
+                    "reason": { "type": "string" }
+                  }
+                }
+              },
+              "operatorAction": { "type": "string", "minLength": 1 },
+              "coverageEffects": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "RunListResponse": {
+        "description": "Run page",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/RunList" } }
+        }
+      },
+      "RunDetailResponse": {
+        "description": "Run aggregate",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/RunDetail" } }
+        }
+      },
+      "DiscoveryResponse": {
+        "description": "Discovery claims accepted",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/DiscoveryResult" } }
+        }
+      },
+      "ApprovalResponse": {
+        "description": "Approvals accepted",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ApprovalResult" } }
+        }
+      },
+      "SecretCreatedResponse": {
+        "description": "Secret handle and one-use upload path",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/SecretCreated" } }
+        }
+      },
+      "ActionAcceptedResponse": {
+        "description": "Asynchronous command accepted",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ActionAccepted" } }
+        }
+      },
+      "CapabilityListResponse": {
+        "description": "Current capabilities",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/CapabilityList" } }
+        }
+      },
+      "CoverageResponse": {
+        "description": "Coverage reconciliation",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/CoverageResult" } }
+        }
+      },
+      "ControlListResponse": {
+        "description": "Control page",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ControlList" } }
+        }
+      },
+      "FindingListResponse": {
+        "description": "Finding page",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/FindingList" } }
+        }
+      },
+      "FindingDetailResponse": {
+        "description": "Finding detail",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/FindingDetail" } }
+        }
+      },
+      "EvidenceListResponse": {
+        "description": "Evidence page",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/EvidenceList" } }
+        }
+      },
+      "EvidenceDetailResponse": {
+        "description": "Evidence detail",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/EvidenceDetail" } }
+        }
+      },
+      "EvidencePreviewResponse": {
+        "description": "Safe evidence derivative",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/EvidencePreview" } }
+        }
+      },
+      "ReviewCreatedResponse": {
+        "description": "Human review recorded",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/ReviewCreated" } }
+        }
+      },
+      "PackageListResponse": {
+        "description": "Packages",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/PackageList" } }
+        }
+      },
+      "DeletionRequestedResponse": {
+        "description": "Deletion requested",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/DeletionRequested" } }
+        }
+      },
+      "DeletionJobResponse": {
+        "description": "Deletion job",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "./schemas/rak/1.0/deletion-job.json" }
+          }
+        }
+      },
+      "DeletionRestoringResponse": {
+        "description": "Restore requested",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/DeletionRestoring" } }
+        }
+      },
+      "ErrorResponse": {
+        "description": "Canonical error envelope",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+          }
+        }
+      }
+    }
+  }
+}

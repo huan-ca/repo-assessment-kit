@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    { "ecosystem": "node-typescript", "files": ["node-typescript/package.json"] },
+    { "ecosystem": "python", "files": ["python/requirements.txt"] },
+    { "ecosystem": "go", "files": ["go/go.mod"] },
+    { "ecosystem": "java", "files": ["java/pom.xml"] },
+    { "ecosystem": "dotnet", "files": ["dotnet/fixture.csproj"] },
+    { "ecosystem": "ruby", "files": ["ruby/Gemfile"] },
+    { "ecosystem": "php", "files": ["php/composer.json"] }
+  ]
+}

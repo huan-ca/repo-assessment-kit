@@ -1,0 +1,17 @@
+.agent-build/artifacts/
+generated/
+workspaces/
+state/
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+dist-types/
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+.pnpm-store/
+.DS_Store
+*.log

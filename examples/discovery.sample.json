@@ -1,0 +1,78 @@
+{
+  "topics": {
+    "target-customers": {
+      "statement": "Regional service businesses with 20 to 200 field staff use the product.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "high"
+    },
+    "buyers": {
+      "statement": "Operations directors approve purchases after review by finance and information technology.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "medium"
+    },
+    "user-roles": {
+      "statement": "Dispatchers schedule work, field staff update jobs, and managers review service performance.",
+      "provenance": "documented",
+      "confidence": "medium"
+    },
+    "customer-pain": {
+      "statement": "Teams lose time reconciling schedule changes across phone calls and spreadsheets.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "high"
+    },
+    "valuable-workflows": {
+      "statement": "Create a job, assign a worker, record completion, and notify the customer.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "high"
+    },
+    "alternatives-differentiators": {
+      "unknown": {
+        "reason": "No current win-loss or competitor review was available.",
+        "confidenceEffect": "The assessment cannot judge whether a technical strength is commercially distinctive.",
+        "coverageEffect": "Competitor comparison remains unverified.",
+        "followUp": "Ask sales and customer-success leaders for the three most common alternatives and recent decision reasons."
+      },
+      "provenance": "unverified",
+      "confidence": "low"
+    },
+    "revenue-retention-critical-behavior": {
+      "statement": "Reliable daily dispatch and accurate completion records are required for contract renewal.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "medium"
+    },
+    "contractual-obligations": {
+      "unknown": {
+        "reason": "Customer contracts were not provided for this sample.",
+        "confidenceEffect": "The assessment cannot confirm contract-driven availability, retention, or security obligations.",
+        "coverageEffect": "Contractual obligations remain unverified and are not treated as compliance requirements.",
+        "followUp": "Have the contract owner confirm relevant service, data, and security commitments before release."
+      },
+      "provenance": "unverified",
+      "confidence": "low"
+    },
+    "expected-scale": {
+      "statement": "The owner expects up to 2,000 customer organizations, 20,000 active users, and 500 requests per second at peak.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "medium"
+    },
+    "feature-parity-expectations": {
+      "statement": "Any replacement must preserve job scheduling, role-based access, completion history, customer notifications, and reporting exports.",
+      "provenance": "owner-stated",
+      "speakerRole": "software owner",
+      "capturedAt": "2026-07-28T12:00:00.000Z",
+      "confidence": "medium"
+    }
+  }
+}

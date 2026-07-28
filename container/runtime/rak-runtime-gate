@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+control=${1:?control is required}
+shift
+case "$control" in
+  request-guard|egress-deny|resource-limits|emergency-stop|residue-cleanup)
+    test -x /usr/local/bin/rak-runtime-broker
+    exec /usr/local/bin/rak-runtime-broker self-test "$control" "$@"
+    ;;
+  assert-clean)
+    test "$#" -eq 0
+    test -x /usr/local/bin/rak-runtime-broker
+    exec /usr/local/bin/rak-runtime-broker self-test assert-clean
+    ;;
+  *) echo "unknown runtime gate" >&2; exit 64 ;;
+esac

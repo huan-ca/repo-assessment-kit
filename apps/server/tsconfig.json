@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "composite": true, "rootDir": "src", "outDir": "dist" },
+  "references": [
+    { "path": "../../packages/contracts" },
+    { "path": "../../packages/workflow" },
+    { "path": "../../packages/persistence" },
+    { "path": "../../packages/evidence" },
+    { "path": "../../packages/analyzers" },
+    { "path": "../../packages/runtime" },
+    { "path": "../../packages/agent-adapters" },
+    { "path": "../../packages/reporting" },
+    { "path": "../../packages/packaging" }
+  ],
+  "include": ["src/**/*.ts"]
+}

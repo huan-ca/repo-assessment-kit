@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repo-assessment-kit.invalid/schemas/release-manifest/2",
+  "title": "Repository Assessment Kit release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "createdAt",
+    "sourceCommit",
+    "nodeVersion",
+    "pnpmVersion",
+    "images",
+    "hostHelper"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+    "nodeVersion": { "const": "24.4.1" },
+    "pnpmVersion": { "const": "11.17.0" },
+    "images": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex", "claude", "acquisition"],
+      "properties": {
+        "codex": { "$ref": "#/$defs/image" },
+        "claude": { "$ref": "#/$defs/image" },
+        "acquisition": { "$ref": "#/$defs/image" }
+      }
+    },
+    "hostHelper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "installer", "modules", "platforms", "serviceDefinitions"],
+      "properties": {
+        "profile": { "const": "rak-host-helper-release/1.0.0" },
+        "installer": { "$ref": "#/$defs/installer" },
+        "modules": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "productionHostHelper",
+            "hostHelperService",
+            "hostHelperJournal",
+            "hostHelperOperations",
+            "hostHelperProtocol",
+            "productionInstallationConfig",
+            "providerTask",
+            "installationValidator",
+            "serviceEntrypoint"
+          ],
+          "properties": {
+            "productionHostHelper": {
+              "$ref": "#/$defs/productionHostHelper"
+            },
+            "hostHelperService": { "$ref": "#/$defs/hostHelperService" },
+            "hostHelperJournal": { "$ref": "#/$defs/hostHelperJournal" },
+            "hostHelperOperations": {
+              "$ref": "#/$defs/hostHelperOperations"
+            },
+            "hostHelperProtocol": { "$ref": "#/$defs/hostHelperProtocol" },
+            "productionInstallationConfig": {
+              "$ref": "#/$defs/productionInstallationConfig"
+            },
+            "providerTask": { "$ref": "#/$defs/providerTask" },
+            "installationValidator": {
+              "$ref": "#/$defs/installationValidator"
+            },
+            "serviceEntrypoint": { "$ref": "#/$defs/serviceEntrypoint" }
+          }
+        },
+        "platforms": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["linux-arm64", "linux-x86-64", "macos-arm64", "macos-x86-64"],
+          "properties": {
+            "linux-arm64": { "$ref": "#/$defs/linuxArm64" },
+            "linux-x86-64": { "$ref": "#/$defs/linuxX8664" },
+            "macos-arm64": { "$ref": "#/$defs/macosArm64" },
+            "macos-x86-64": { "$ref": "#/$defs/macosX8664" }
+          }
+        },
+        "serviceDefinitions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["linux", "macos"],
+          "properties": {
+            "linux": { "$ref": "#/$defs/linuxService" },
+            "macos": { "$ref": "#/$defs/macosService" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "installer": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": { "const": "scripts/install-production-host-helper.sh" }
+          }
+        }
+      ]
+    },
+    "productionHostHelper": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": { "const": "scripts/production-host-helper.mjs" }
+          }
+        }
+      ]
+    },
+    "hostHelperService": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": { "const": "scripts/host-helper-service.mjs" }
+          }
+        }
+      ]
+    },
+    "hostHelperJournal": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": { "const": "scripts/host-helper-journal.mjs" }
+          }
+        }
+      ]
+    },
+    "hostHelperOperations": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": { "const": "scripts/host-helper-operations.mjs" }
+          }
+        }
+      ]
+    },
+    "hostHelperProtocol": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": { "const": "scripts/host-helper-protocol.mjs" }
+          }
+        }
+      ]
+    },
+    "productionInstallationConfig": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": {
+              "const": "scripts/production-installation-config.mjs"
+            }
+          }
+        }
+      ]
+    },
+    "providerTask": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": { "path": { "const": "container/provider-task.mjs" } }
+        }
+      ]
+    },
+    "installationValidator": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": {
+              "const": "container/runtime/install/validate-production-host-helper.mjs"
+            }
+          }
+        }
+      ]
+    },
+    "serviceEntrypoint": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": {
+              "const": "container/runtime/install/service-entrypoint.mjs"
+            }
+          }
+        }
+      ]
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "architecture", "nodeVersion", "node", "peerVerifier"],
+      "properties": {
+        "platform": { "enum": ["linux", "macos"] },
+        "architecture": { "enum": ["arm64", "x86-64"] },
+        "nodeVersion": { "const": "v24.4.1" },
+        "node": { "$ref": "#/$defs/asset" },
+        "peerVerifier": { "$ref": "#/$defs/asset" }
+      }
+    },
+    "linuxArm64": {
+      "allOf": [
+        { "$ref": "#/$defs/platform" },
+        {
+          "properties": {
+            "platform": { "const": "linux" },
+            "architecture": { "const": "arm64" },
+            "node": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/linux-arm64/node"
+                }
+              }
+            },
+            "peerVerifier": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/linux-arm64/rak-peer-cred"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "linuxX8664": {
+      "allOf": [
+        { "$ref": "#/$defs/platform" },
+        {
+          "properties": {
+            "platform": { "const": "linux" },
+            "architecture": { "const": "x86-64" },
+            "node": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/linux-x86-64/node"
+                }
+              }
+            },
+            "peerVerifier": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/linux-x86-64/rak-peer-cred"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "macosArm64": {
+      "allOf": [
+        { "$ref": "#/$defs/platform" },
+        {
+          "properties": {
+            "platform": { "const": "macos" },
+            "architecture": { "const": "arm64" },
+            "node": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/macos-arm64/node"
+                }
+              }
+            },
+            "peerVerifier": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/macos-arm64/rak-peer-cred"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "macosX8664": {
+      "allOf": [
+        { "$ref": "#/$defs/platform" },
+        {
+          "properties": {
+            "platform": { "const": "macos" },
+            "architecture": { "const": "x86-64" },
+            "node": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/macos-x86-64/node"
+                }
+              }
+            },
+            "peerVerifier": {
+              "properties": {
+                "path": {
+                  "const": "container/runtime/install/payload/macos-x86-64/rak-peer-cred"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "linuxService": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": {
+              "const": "container/runtime/install/repo-assessment-kit-host-helper.service"
+            }
+          }
+        }
+      ]
+    },
+    "macosService": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        {
+          "properties": {
+            "path": {
+              "const": "container/runtime/install/com.repo-assessment-kit.host-helper.plist"
+            }
+          }
+        }
+      ]
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference", "digest", "platforms"],
+      "properties": {
+        "reference": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "platforms": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["linux/amd64", "linux/arm64"] },
+          "minItems": 2
+        }
+      }
+    }
+  }
+}

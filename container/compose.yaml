@@ -1,0 +1,37 @@
+name: repo-assessment-kit
+
+x-rak-common: &rak-common
+  init: true
+  read_only: true
+  pull_policy: never
+  network_mode: none
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 256
+  mem_limit: 1g
+  cpus: 2
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=256m
+
+services:
+  codex:
+    <<: *rak-common
+    profiles: [codex]
+    build:
+      context: ..
+      dockerfile: container/Dockerfile.codex
+    image: rak-codex:0.1.0
+    volumes:
+      - /home/node
+    command: [status]
+
+  claude:
+    <<: *rak-common
+    profiles: [claude]
+    build:
+      context: ..
+      dockerfile: container/Dockerfile.claude
+    image: rak-claude:0.1.0
+    volumes:
+      - /home/node
+    command: [status]

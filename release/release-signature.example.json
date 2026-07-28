@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "profile": "rak-release-signature/1.0.0",
+  "keyId": "sha256:REPLACE_WITH_64_HEX_PUBLIC_KEY_FINGERPRINT",
+  "algorithm": "Ed25519",
+  "payload": {
+    "profile": "rak-release-authority/1.0.0",
+    "manifestSha256": "REPLACE_WITH_64_HEX_MANIFEST_DIGEST",
+    "toolchainLockSha256": "REPLACE_WITH_64_HEX_TOOLCHAIN_LOCK_DIGEST"
+  },
+  "signature": "REPLACE_WITH_88_CHARACTER_BASE64_ED25519_SIGNATURE"
+}

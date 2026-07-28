@@ -1,0 +1,26 @@
+minimumLimaVersion: "1.0.0"
+vmType: vz
+arch: null
+cpus: 4
+memory: 8GiB
+disk: 40GiB
+mounts: []
+portForwards: []
+containerd:
+  system: false
+  user: false
+networks: []
+provision:
+  - mode: system
+    script: |
+      #!/bin/sh
+      set -eu
+      install -d -m 0700 -o 1000 -g 1000 /var/lib/rak-runtime
+probes:
+  - description: runtime workspace exists
+    script: test -d /var/lib/rak-runtime
+hostResolver:
+  enabled: false
+message: |
+  RAK isolated runtime VM is ready. The broker must install and own rootless Docker;
+  target execution remains blocked until the broker attestation passes.

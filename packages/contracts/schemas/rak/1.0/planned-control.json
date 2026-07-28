@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rak.local/schemas/rak/1.0/planned-control.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plannedControlId", "profileId", "controlId", "title"],
+  "properties": {
+    "plannedControlId": { "type": "string" },
+    "profileId": { "type": "string" },
+    "controlId": { "type": "string" },
+    "title": { "type": "string" },
+    "currentResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "controlResultId",
+        "runId",
+        "plannedControlId",
+        "profileId",
+        "controlId",
+        "plannedScope",
+        "status",
+        "techniqueIds",
+        "evidenceOccurrenceIds",
+        "activityId",
+        "completedAt"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "controlResultId": { "type": "string" },
+        "runId": { "type": "string" },
+        "plannedControlId": { "type": "string" },
+        "profileId": { "type": "string" },
+        "controlId": { "type": "string" },
+        "plannedScope": { "type": "string" },
+        "status": {
+          "enum": ["pass", "fail", "partial", "blocked", "not applicable", "not tested"]
+        },
+        "reasonCode": { "type": "string" },
+        "reason": { "type": "string" },
+        "techniqueIds": { "type": "array", "items": { "type": "string" } },
+        "evidenceOccurrenceIds": { "type": "array", "items": { "type": "string" } },
+        "limitationId": { "type": "string" },
+        "activityId": { "type": "string" },
+        "reviewedBy": { "type": "string" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectSlug": "sample-customer-portal",
+  "source": {
+    "kind": "ssh",
+    "url": "ssh://git@source.example.invalid/acme/sample-customer-portal.git",
+    "ref": "main",
+    "acquisitionProfileId": "sample-read-only-deploy-key"
+  },
+  "discoveryPath": "examples/discovery.sample.json",
+  "outputRoot": "generated",
+  "runtime": {
+    "mode": "static-only",
+    "targetOrigins": []
+  },
+  "sandboxCredentials": [],
+  "optionalServices": []
+}
